@@ -4,6 +4,8 @@ const BACKGROUND_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
 
 const TILE_SCALE: Vec3 = Vec3::new(0.2, 0.2, 0.0);
 const TILE_SIZE: Vec3 = Vec3::new(1152.0, 1152.0, 0.0);
+const NUM_TILES_X: i32 = 4;
+const NUM_TILES_Y: i32 = 4;
 
 const EXPLORER_SCALE: Vec3 = Vec3::new(50.0, 50.0, 0.0);
 
@@ -29,11 +31,14 @@ struct Velocity;
 #[derive(Component)]
 struct Explorer;
 
+#[derive(Component)]
+struct TopDownCamera;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(ClearColor(BACKGROUND_COLOR))
-        .insert_resource(InputCooldown(Timer::from_seconds(1.0, true)))
+        .insert_resource(InputCooldown(Timer::from_seconds(0.2, true)))
         .add_startup_system(setup)
         .add_system(handle_input)
         .run();
@@ -41,11 +46,25 @@ fn main() {
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     //Camera
-    commands.spawn_bundle(Camera2dBundle::default());
+    commands
+        .spawn()
+        .insert_bundle(Camera2dBundle {
+            transform: Transform {
+                translation: Vec3::new(
+                    (NUM_TILES_X - 1) as f32 * TILE_SCALE.x * TILE_SIZE.x / 2.0,
+                    (NUM_TILES_Y - 1) as f32 * TILE_SCALE.y * TILE_SIZE.y / 2.0,
+                    10.0,
+                ),
+                scale: Vec3::new(2.0, 2.0, 1.0),
+                ..default()
+            },
+            ..default()
+        })
+        .insert(TopDownCamera);
 
-    //Tile
-    for x_pos in 0..2 {
-        for y_pos in 0..2 {
+    //Tiles
+    for x_pos in 0..NUM_TILES_X {
+        for y_pos in 0..NUM_TILES_Y {
             commands
                 .spawn()
                 .insert(Tile {
@@ -146,24 +165,45 @@ fn handle_input(
             from_top = true;
         }
 
+        let mut dest_top = false;
+        let mut dest_bottom = false;
+        let mut dest_right = false;
+        let mut dest_left = false;
+        let mut current_top = false;
+        let mut current_bottom = false;
+        let mut current_right = false;
+        let mut current_left = false;
         for (tile, pos) in &tiles_query {
             if pos == &destination {
-                if from_top && tile.top {
-                    println!("Entered Tile from top!");
-                    transform.translation.y -= TILE_SIZE.y * TILE_SCALE.y;
-                } else if from_bottom && tile.bottom {
-                    println!("Entered Tile from bottom!");
-                    transform.translation.y += TILE_SIZE.y * TILE_SCALE.y;
-                } else if from_right && tile.right {
-                    println!("Entered Tile from right!");
-                    transform.translation.x -= TILE_SIZE.x * TILE_SCALE.x;
-                } else if from_left && tile.left {
-                    println!("Entered Tile from left!");
-                    transform.translation.x += TILE_SIZE.x * TILE_SCALE.x;
-                } else {
-                    println!("No input/No valid input");
-                }
+                dest_top = tile.top;
+                dest_bottom = tile.bottom;
+                dest_right = tile.right;
+                dest_left = tile.left;
+            } else if pos.x == explorer_position.x && pos.y == explorer_position.y {
+                current_top = tile.top;
+                current_bottom = tile.bottom;
+                current_right = tile.right;
+                current_left = tile.left;
             }
+        }
+        if from_top && dest_top && current_bottom {
+            println!("Entered Tile from top!");
+            transform.translation.y -= TILE_SIZE.y * TILE_SCALE.y;
+            explorer_position.y -= 1;
+        } else if from_bottom && dest_bottom && current_top {
+            println!("Entered Tile from bottom!");
+            transform.translation.y += TILE_SIZE.y * TILE_SCALE.y;
+            explorer_position.y += 1;
+        } else if from_right && dest_right && current_left {
+            println!("Entered Tile from right!");
+            transform.translation.x -= TILE_SIZE.x * TILE_SCALE.x;
+            explorer_position.x -= 1;
+        } else if from_left && dest_left && current_right {
+            println!("Entered Tile from left!");
+            transform.translation.x += TILE_SIZE.x * TILE_SCALE.x;
+            explorer_position.x += 1;
+        } else {
+            println!("No input/No valid input");
         }
     }
 }
