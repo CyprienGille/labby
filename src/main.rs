@@ -1,4 +1,6 @@
 use bevy::prelude::*;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 
 const BACKGROUND_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
 
@@ -61,18 +63,25 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 
     //Tiles
+    let choices = vec!["corner".to_string(), "T_shape".to_string()];
     for x_pos in 0..NUM_TILES_X {
         for y_pos in 0..NUM_TILES_Y {
             spawn_tile(
                 x_pos,
                 y_pos,
-                "T_shape".to_string(),
+                choices.choose(&mut thread_rng()),
                 &mut commands,
                 &asset_server,
             );
         }
     }
-    spawn_tile(-1, 1, "corner".to_string(), &mut commands, &asset_server);
+    spawn_tile(
+        -1,
+        0,
+        Some(&"corner".to_string()),
+        &mut commands,
+        &asset_server,
+    );
 
     let x_pos = 0;
     let y_pos = 0;
@@ -102,21 +111,44 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 fn spawn_tile(
     x_pos: i32,
     y_pos: i32,
-    tile_type: String,
+    tile_type: Option<&String>,
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
 ) {
+    let mut tt = "".to_string();
+    match tile_type {
+        Some(v) => {
+            tt = v.to_string();
+        }
+        None => {
+            // default behavior
+            tt = "T_shape".to_string();
+        }
+    }
+    let mut bottom = false;
+    let mut top = false;
+    let mut right = false;
+    let mut left = false;
+    if tt == *"T_shape" {
+        bottom = true;
+        right = true;
+        left = true;
+    } else if tt == *"corner" {
+        bottom = true;
+        left = true;
+    }
     commands
         .spawn()
         .insert(GridPosition { x: x_pos, y: y_pos })
         .insert(Tile {
-            bottom: true,
-            right: true,
-            left: true,
+            bottom,
+            top,
+            right,
+            left,
             ..default()
         })
         .insert_bundle(SpriteBundle {
-            texture: asset_server.load(&format!("../assets/{}.png", tile_type)),
+            texture: asset_server.load(&format!("../assets/{}.png", tt)),
             transform: Transform {
                 translation: Vec3::new(
                     x_pos as f32 * TILE_SIZE.x * TILE_SCALE.x,
@@ -131,7 +163,7 @@ fn spawn_tile(
 }
 
 fn handle_input(
-    pushing_phase: ResMut<PushingPhase>,
+    mut pushing_phase: ResMut<PushingPhase>,
     time: Res<Time>,
     mut timer: ResMut<InputCooldown>,
     keyboard_input: Res<Input<KeyCode>>,
@@ -204,6 +236,7 @@ fn handle_input(
                         }
                     }
                 }
+                pushing_phase.0 = false;
             }
         } else {
             // Movement phase
@@ -223,30 +256,29 @@ fn handle_input(
                     y: explorer_position.y,
                 };
                 from_right = true;
-            }
-            if keyboard_input.pressed(KeyCode::Right) {
+            } else if keyboard_input.pressed(KeyCode::Right) {
                 println!("Pressed Right!");
                 destination = GridPosition {
                     x: explorer_position.x + 1,
                     y: explorer_position.y,
                 };
                 from_left = true;
-            }
-            if keyboard_input.pressed(KeyCode::Up) {
+            } else if keyboard_input.pressed(KeyCode::Up) {
                 println!("Pressed Up!");
                 destination = GridPosition {
                     x: explorer_position.x,
                     y: explorer_position.y + 1,
                 };
                 from_bottom = true;
-            }
-            if keyboard_input.pressed(KeyCode::Down) {
+            } else if keyboard_input.pressed(KeyCode::Down) {
                 println!("Pressed Down!");
                 destination = GridPosition {
                     x: explorer_position.x,
                     y: explorer_position.y - 1,
                 };
                 from_top = true;
+            } else if keyboard_input.pressed(KeyCode::Return) {
+                pushing_phase.0 = true;
             }
 
             let mut dest_top = false;
