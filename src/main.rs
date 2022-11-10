@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::prelude::*;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
@@ -8,6 +10,8 @@ const TILE_SCALE: Vec3 = Vec3::new(0.2, 0.2, 0.0);
 const TILE_SIZE: Vec3 = Vec3::new(1152.0, 1152.0, 0.0);
 const NUM_TILES_X: i32 = 4;
 const NUM_TILES_Y: i32 = 4;
+
+const FIXED_POSITIONS: [(i32, i32); 2] = [(0, 0), (4, 4)];
 
 const EXPLORER_SCALE: Vec3 = Vec3::new(50.0, 50.0, 0.0);
 
@@ -63,25 +67,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 
     //Tiles
-    let choices = vec!["corner".to_string(), "T_shape".to_string()];
-    for x_pos in 0..NUM_TILES_X {
-        for y_pos in 0..NUM_TILES_Y {
-            spawn_tile(
-                x_pos,
-                y_pos,
-                choices.choose(&mut thread_rng()),
-                &mut commands,
-                &asset_server,
-            );
-        }
-    }
-    spawn_tile(
-        -1,
-        0,
-        Some(&"corner".to_string()),
-        &mut commands,
-        &asset_server,
-    );
+    spawn_all_tiles(&mut commands, &asset_server);
 
     let x_pos = 0;
     let y_pos = 0;
@@ -115,16 +101,15 @@ fn spawn_tile(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
 ) {
-    let mut tt = "".to_string();
-    match tile_type {
-        Some(v) => {
-            tt = v.to_string();
-        }
+    let fixed = FIXED_POSITIONS.contains(&(x_pos, y_pos));
+
+    let tt = match tile_type {
+        Some(v) => v.to_string(),
         None => {
             // default behavior
-            tt = "T_shape".to_string();
+            "T_shape".to_string()
         }
-    }
+    };
     let mut bottom = false;
     let mut top = false;
     let mut right = false;
@@ -137,7 +122,8 @@ fn spawn_tile(
         bottom = true;
         left = true;
     }
-    commands
+
+    let tile_entity = commands
         .spawn()
         .insert(GridPosition { x: x_pos, y: y_pos })
         .insert(Tile {
@@ -145,7 +131,7 @@ fn spawn_tile(
             top,
             right,
             left,
-            ..default()
+            fixed,
         })
         .insert_bundle(SpriteBundle {
             texture: asset_server.load(&format!("../assets/{}.png", tt)),
@@ -159,7 +145,58 @@ fn spawn_tile(
                 ..default()
             },
             ..default()
-        });
+        })
+        .id();
+
+    if fixed {
+        println!("This tile is fixed!");
+        let child = commands
+            .spawn_bundle(SpriteBundle {
+                texture: asset_server.load("../assets/fixed.png"),
+                transform: Transform {
+                    translation: Vec3::new(
+                        x_pos as f32 * TILE_SIZE.x * TILE_SCALE.x,
+                        y_pos as f32 * TILE_SIZE.y * TILE_SCALE.y,
+                        0.5,
+                    ),
+                    scale: TILE_SCALE,
+                    ..default()
+                },
+                ..default()
+            })
+            .id();
+        commands.entity(tile_entity).push_children(&[child]);
+    }
+}
+
+fn spawn_all_tiles(commands: &mut Commands, asset_server: &Res<AssetServer>) {
+    let choices = vec!["corner".to_string(), "T_shape".to_string()];
+    for x_pos in 0..NUM_TILES_X {
+        for y_pos in 0..NUM_TILES_Y {
+            spawn_tile(
+                x_pos,
+                y_pos,
+                choices.choose(&mut thread_rng()),
+                commands,
+                asset_server,
+            );
+        }
+    }
+    spawn_tile(-1, 0, Some(&"corner".to_string()), commands, asset_server);
+}
+
+fn rotate_tile(mut tile: Mut<Tile>, mut transform: Mut<Transform>) {
+    // rotates a tile 90 degrees clock-wise
+
+    // rotate the 'open' booleans
+    let temp = tile.top;
+    tile.top = tile.left;
+    tile.left = tile.bottom;
+    tile.bottom = tile.right;
+    tile.right = temp;
+
+    //rotate the sprite
+    transform.rotate_axis(Vec3::new(0.0, 0.0, 1.0), -PI / 2.0)
 }
 
 fn handle_input(
@@ -177,7 +214,7 @@ fn handle_input(
             let mut final_pos_x = 0;
             let mut final_pos_y = 0;
             let mut has_reached_final_pos = false;
-            for (mut tile, mut pos, mut transform) in &mut tiles_query {
+            for (tile, mut pos, mut transform) in &mut tiles_query {
                 let horiz_ok = pos.y == -1 || pos.y == NUM_TILES_Y;
                 let vertic_ok = pos.x == -1 || pos.x == NUM_TILES_X;
                 if horiz_ok || vertic_ok {
@@ -199,44 +236,49 @@ fn handle_input(
                         final_pos_x = pos.x;
                         final_pos_y = pos.y;
                         has_reached_final_pos = true;
+                    } else if keyboard_input.pressed(KeyCode::Tab) {
+                        rotate_tile(tile, transform);
                     }
                 }
             }
             if has_reached_final_pos {
                 if final_pos_x == -1 {
-                    for (_, mut other_pos, mut other_transform) in &mut tiles_query {
-                        if final_pos_y == other_pos.y {
+                    for (tile, mut other_pos, mut other_transform) in &mut tiles_query {
+                        if final_pos_y == other_pos.y && !tile.fixed {
                             // Move right all tiles in this line
                             other_transform.translation.x += TILE_SCALE.x * TILE_SIZE.x;
                             other_pos.x += 1;
+                            pushing_phase.0 = false;
                         }
                     }
                 } else if final_pos_x == NUM_TILES_X {
-                    for (_, mut other_pos, mut other_transform) in &mut tiles_query {
-                        if final_pos_y == other_pos.y {
+                    for (tile, mut other_pos, mut other_transform) in &mut tiles_query {
+                        if final_pos_y == other_pos.y && !tile.fixed {
                             // Move left all tiles in this line
                             other_transform.translation.x -= TILE_SCALE.x * TILE_SIZE.x;
                             other_pos.x -= 1;
+                            pushing_phase.0 = false;
                         }
                     }
                 } else if final_pos_y == -1 {
-                    for (_, mut other_pos, mut other_transform) in &mut tiles_query {
-                        if final_pos_x == other_pos.x {
+                    for (tile, mut other_pos, mut other_transform) in &mut tiles_query {
+                        if final_pos_x == other_pos.x && !tile.fixed {
                             // Move up all tiles in this column
                             other_transform.translation.y += TILE_SCALE.y * TILE_SIZE.y;
                             other_pos.y += 1;
+                            pushing_phase.0 = false;
                         }
                     }
                 } else if final_pos_y == NUM_TILES_Y {
-                    for (_, mut other_pos, mut other_transform) in &mut tiles_query {
-                        if final_pos_x == other_pos.x {
+                    for (tile, mut other_pos, mut other_transform) in &mut tiles_query {
+                        if final_pos_x == other_pos.x && !tile.fixed {
                             // Move down all tiles in this column
                             other_transform.translation.y -= TILE_SCALE.y * TILE_SIZE.y;
                             other_pos.y -= 1;
+                            pushing_phase.0 = false;
                         }
                     }
                 }
-                pushing_phase.0 = false;
             }
         } else {
             // Movement phase
