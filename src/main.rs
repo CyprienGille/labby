@@ -171,6 +171,9 @@ fn handle_input(
     mut tiles_query: Query<(&mut Tile, &mut GridPosition, &mut Transform), Without<Explorer>>,
 ) {
     if timer.0.tick(time.delta()).just_finished() {
+        let (mut explorer_position, mut transform) = explorer_query
+            .get_single_mut()
+            .expect("Query gave more than one explorer!");
         if pushing_phase.0 {
             // tile pushing phase
 
@@ -240,9 +243,6 @@ fn handle_input(
             }
         } else {
             // Movement phase
-            let (mut explorer_position, mut transform) = explorer_query
-                .get_single_mut()
-                .expect("Query gave more than one explorer!");
 
             let mut destination = GridPosition { x: 0, y: 0 };
             let mut from_left = false;
