@@ -1,5 +1,4 @@
 target/
 dg_maps/
-src/breakout.rs
 src/old_main.rs
 .vscode/
