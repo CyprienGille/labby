@@ -3,12 +3,10 @@
 Little recreation of the Labyrinth board game using **Rust** and the *Bevy* game engine.
 
 ## TODO
- - Rotate tiles on setup
- - Fixed Tiles
- - Move player when tile below them moves
- - More Tile Types
- - Bigger Map
- - Adjustable Number of players
- - Add treasures
- - Track picked up treasures
- - UI
+- v0.1.0 - Tiles
+- v0.1.1 - Debug
+- v0.2.0 - Player
+- v0.3.0 - Board movement
+- v0.4.0 - Treasure
+- v0.5.0 - UI
+- v0.6.0 - Menus
