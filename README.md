@@ -3,7 +3,6 @@
 Little recreation of the Labyrinth board game using **Rust** and the *Bevy* game engine.
 
 ## TODO
-- v0.2.2 - Player movement
 - v0.2.5 - Player-Tile Collision
 - v0.2.9 - Documentation Break
 - v0.3.0 - Board movement
@@ -17,3 +16,4 @@ Little recreation of the Labyrinth board game using **Rust** and the *Bevy* game
 - v0.1.1 - Debug
 - v0.2.0 - Player
 - v0.2.1 - Player spawning
+- v0.2.2 - Player movement
