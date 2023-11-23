@@ -5,7 +5,9 @@ use std::f32::consts::PI;
 use crate::board::Board;
 use crate::board::TileInfo;
 use crate::movement::CanMove;
+use crate::player::SpawnPosition;
 use crate::tile::TileType;
+use crate::GridPosition;
 
 pub static BOARD_0: Lazy<Board> = Lazy::new(|| Board {
     tiles: array![
@@ -110,5 +112,9 @@ pub static BOARD_0: Lazy<Board> = Lazy::new(|| Board {
                 can_move: CanMove::No,
             },
         ],
+    ],
+    spawn_positions: vec![
+        SpawnPosition::Position(GridPosition { x_pos: 0, y_pos: 0 }),
+        SpawnPosition::Any,
     ],
 });
