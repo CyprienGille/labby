@@ -115,6 +115,8 @@ pub static BOARD_0: Lazy<Board> = Lazy::new(|| Board {
     ],
     spawn_positions: vec![
         SpawnPosition::Position(GridPosition { x_pos: 0, y_pos: 0 }),
-        SpawnPosition::Any,
+        SpawnPosition::Position(GridPosition { x_pos: 0, y_pos: 4 }),
+        SpawnPosition::Position(GridPosition { x_pos: 4, y_pos: 4 }),
+        SpawnPosition::Position(GridPosition { x_pos: 4, y_pos: 0 }),
     ],
 });
