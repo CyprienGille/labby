@@ -10,8 +10,9 @@ mod treasure;
 use bevy::prelude::*;
 use board::BoardPlugin;
 use camera::Camera2dPlugin;
+use debug::DebugPlugin;
 
-const BACKGROUND_COLOR: Color = Color::rgb(0.8, 0.9, 0.8);
+const BACKGROUND_COLOR: Color = Color::rgb(0.2, 0.3, 0.2);
 
 #[derive(Component, Debug, Default)]
 pub struct GridPosition {
@@ -27,5 +28,7 @@ fn main() {
         // User plugins
         .add_plugins(Camera2dPlugin)
         .add_plugins(BoardPlugin)
+        // Debug plugin
+        // .add_plugins(DebugPlugin)
         .run();
 }
