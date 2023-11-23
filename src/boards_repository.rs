@@ -11,33 +11,104 @@ pub static BOARD_0: Lazy<Board> = Lazy::new(|| Board {
     tiles: array![
         [
             TileInfo {
-                ..Default::default()
-            },
-            TileInfo {
-                tile_type: TileType::Straight,
+                tile_type: TileType::Corner,
                 angle: PI / 2.0,
-                can_move: CanMove::Yes
-            }
-        ],
-        [
+                can_move: CanMove::No,
+            },
             TileInfo {
                 ..Default::default()
             },
             TileInfo {
-                tile_type: TileType::Straight,
+                tile_type: TileType::T,
                 angle: 0.0,
-                can_move: CanMove::Yes
-            }
-        ],
-        [
+                can_move: CanMove::No,
+            },
             TileInfo {
                 ..Default::default()
             },
             TileInfo {
                 tile_type: TileType::Corner,
-                angle: 3.0 * PI / 2.0,
-                can_move: CanMove::Yes
-            }
+                angle: 0.0,
+                can_move: CanMove::No,
+            },
+        ],
+        [
+            TileInfo {
+                ..Default::default()
+            },
+            TileInfo {
+                ..Default::default()
+            },
+            TileInfo {
+                ..Default::default()
+            },
+            TileInfo {
+                ..Default::default()
+            },
+            TileInfo {
+                ..Default::default()
+            },
+        ],
+        [
+            TileInfo {
+                tile_type: TileType::T,
+                angle: PI / 2.0,
+                can_move: CanMove::No,
+            },
+            TileInfo {
+                ..Default::default()
+            },
+            TileInfo {
+                ..Default::default()
+            },
+            TileInfo {
+                ..Default::default()
+            },
+            TileInfo {
+                tile_type: TileType::T,
+                angle: -PI / 2.0,
+                can_move: CanMove::No,
+            },
+        ],
+        [
+            TileInfo {
+                ..Default::default()
+            },
+            TileInfo {
+                ..Default::default()
+            },
+            TileInfo {
+                ..Default::default()
+            },
+            TileInfo {
+                ..Default::default()
+            },
+            TileInfo {
+                ..Default::default()
+            },
+        ],
+        [
+            TileInfo {
+                tile_type: TileType::Corner,
+                angle: PI,
+                can_move: CanMove::No,
+            },
+            TileInfo {
+                ..Default::default()
+            },
+            TileInfo {
+                tile_type: TileType::T,
+                angle: PI,
+                can_move: CanMove::No,
+            },
+            TileInfo {
+                ..Default::default()
+            },
+            TileInfo {
+                tile_type: TileType::Corner,
+                angle: -PI / 2.0,
+                can_move: CanMove::No,
+            },
         ],
     ],
 });
