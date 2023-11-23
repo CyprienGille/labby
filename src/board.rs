@@ -35,7 +35,8 @@ fn spawn_board(mut commands: Commands, asset_server: Res<AssetServer>) {
     for y_pos in 0..*Lazy::force(&NUM_TILES_Y) {
         for x_pos in 0..*Lazy::force(&NUM_TILES_X) {
             let current_tile = board.tiles[[y_pos, x_pos]];
-            let int_y_pos: i32 = y_pos.try_into().unwrap();
+            // println!("{:?}", current_tile);
+            let int_y_pos: i32 = (board.tiles.shape()[0] - y_pos - 1).try_into().unwrap();
             let int_x_pos: i32 = x_pos.try_into().unwrap();
             spawn_tile(
                 int_x_pos,
