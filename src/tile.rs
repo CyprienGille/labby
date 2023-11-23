@@ -13,6 +13,8 @@ pub enum TileType {
     Corner,
     Straight,
     T,
+    FourWay,
+    Block,
     #[default]
     Any,
 }
@@ -34,7 +36,7 @@ pub fn spawn_tile(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
 ) {
-    // If tile_type is Any, pick one of the other tile types
+    // If tile_type is Any, pick one among a list of chosen types
     if tile_type == TileType::Any {
         tile_type = *vec![TileType::Corner, TileType::Straight, TileType::T]
             .choose(&mut thread_rng())
@@ -45,7 +47,9 @@ pub fn spawn_tile(
         TileType::Corner => "corner.png",
         TileType::Straight => "straight.png",
         TileType::T => "T_shape.png",
-        TileType::Any => "corner.png",
+        TileType::FourWay => "4_way.png",
+        TileType::Block => "Block.png",
+        TileType::Any => "corner.png", //Should never be reached
     };
 
     commands.spawn(TileBundle {
