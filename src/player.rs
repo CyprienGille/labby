@@ -23,7 +23,7 @@ pub enum GridAxis {
 
 #[derive(Component, Debug)]
 pub struct Player {
-    id: i32,
+    pub id: i32,
 }
 
 #[derive(Bundle)]
