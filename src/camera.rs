@@ -1,8 +1,7 @@
 use bevy::prelude::*;
-use once_cell::sync::Lazy;
 
 use crate::{
-    board::{NUM_TILES_X, NUM_TILES_Y},
+    board_selector::SelectedBoard,
     tile::{TILE_SCALE, TILE_SIZE},
 };
 
@@ -12,13 +11,13 @@ pub struct Camera2dPlugin;
 
 impl Plugin for Camera2dPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_camera);
+        app.add_systems(PostStartup, spawn_camera);
     }
 }
 
-fn spawn_camera(mut commands: Commands) {
-    let num_tiles_x = Lazy::force(&NUM_TILES_X);
-    let num_tiles_y = Lazy::force(&NUM_TILES_Y);
+fn spawn_camera(mut commands: Commands, selected_board: Res<SelectedBoard>) {
+    let num_tiles_x = selected_board.board.tiles.shape()[1];
+    let num_tiles_y = selected_board.board.tiles.shape()[0];
 
     commands.spawn(Camera2dBundle {
         transform: Transform {
