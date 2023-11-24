@@ -17,6 +17,7 @@ pub enum TileType {
     T,
     FourWay,
     Block,
+    OneWay,
     #[default]
     Any,
 }
@@ -50,9 +51,16 @@ pub fn spawn_tile(
 ) {
     // If tile_type is Any, pick one among a list of chosen types
     if tile_type == TileType::Any {
-        tile_type = *vec![TileType::Corner, TileType::Straight, TileType::T]
-            .choose(&mut thread_rng())
-            .unwrap_or(&TileType::Corner);
+        tile_type = *vec![
+            TileType::Corner,
+            TileType::Straight,
+            TileType::T,
+            TileType::OneWay,
+            TileType::Block,
+            TileType::FourWay,
+        ]
+        .choose(&mut thread_rng())
+        .unwrap_or(&TileType::Corner);
     }
 
     let texture_path = match tile_type {
@@ -61,48 +69,11 @@ pub fn spawn_tile(
         TileType::T => "T_shape.png",
         TileType::FourWay => "4_way.png",
         TileType::Block => "Block.png",
+        TileType::OneWay => "1_way.png",
         TileType::Any => "corner.png", //Should never be reached, default to corner
     };
 
-    let open_ways = match tile_type {
-        TileType::Corner => OpenWays {
-            top: false,
-            right: false,
-            bottom: true,
-            left: true,
-        },
-        TileType::Straight => OpenWays {
-            top: false,
-            right: true,
-            bottom: false,
-            left: true,
-        },
-        TileType::T => OpenWays {
-            top: false,
-            right: true,
-            bottom: true,
-            left: true,
-        },
-        TileType::FourWay => OpenWays {
-            top: true,
-            right: true,
-            bottom: true,
-            left: true,
-        },
-        TileType::Block => OpenWays {
-            top: false,
-            right: false,
-            bottom: false,
-            left: false,
-        },
-        // Should never be reached, default to corner
-        TileType::Any => OpenWays {
-            top: false,
-            right: false,
-            bottom: true,
-            left: true,
-        },
-    };
+    let open_ways = get_ways_from_type(tile_type);
 
     commands.spawn(TileBundle {
         pos: GridPosition { x_pos, y_pos },
@@ -159,5 +130,53 @@ fn rotate_ways(mut open_ways: OpenWays, angle: f32) -> OpenWays {
     } else {
         // println!("No rotation due to angle being {}", angle);
         old_ways
+    }
+}
+
+fn get_ways_from_type(tile_type: TileType) -> OpenWays {
+    match tile_type {
+        TileType::Corner => OpenWays {
+            top: false,
+            right: false,
+            bottom: true,
+            left: true,
+        },
+        TileType::Straight => OpenWays {
+            top: false,
+            right: true,
+            bottom: false,
+            left: true,
+        },
+        TileType::T => OpenWays {
+            top: false,
+            right: true,
+            bottom: true,
+            left: true,
+        },
+        TileType::FourWay => OpenWays {
+            top: true,
+            right: true,
+            bottom: true,
+            left: true,
+        },
+        TileType::OneWay => OpenWays {
+            top: false,
+            right: false,
+            bottom: true,
+            left: false,
+        },
+        TileType::Block => OpenWays {
+            top: false,
+            right: false,
+            bottom: false,
+            left: false,
+        },
+        // Should never be reached, default to corner
+        TileType::Any => OpenWays {
+            top: false,
+            right: false,
+            bottom: true,
+            left: true,
+        },
     }
 }
