@@ -17,6 +17,7 @@ impl Plugin for BoardSelectorPlugin {
 }
 
 fn select_board(mut commands: Commands) {
+    // Select board on startup from repository
     commands.insert_resource(SelectedBoard {
         board: Lazy::force(&BOARD_0).clone(),
     })
