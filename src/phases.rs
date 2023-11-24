@@ -16,6 +16,7 @@ fn check_phase(
     keys: Res<Input<KeyCode>>,
 ) {
     for (player, mut can_move) in &mut query {
+        // if it is a player's turn, allow them to move
         if game_state.current_player_id == player.id {
             *can_move = CanMove::Yes;
         } else {
@@ -23,6 +24,7 @@ fn check_phase(
         }
     }
     if keys.just_pressed(KeyCode::T) {
+        // end turn
         game_state.current_player_id = (game_state.current_player_id + 1) % NUM_PLAYERS;
     }
 }
