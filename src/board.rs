@@ -7,12 +7,14 @@ use crate::player::SpawnPosition;
 use crate::tile::spawn_tile;
 use crate::tile::TileType;
 
-#[derive(Component, Debug, Clone)]
+// The general internal board representation
+#[derive(Debug, Clone)]
 pub struct Board {
     pub tiles: Array2<TileInfo>,
     pub spawn_positions: Vec<SpawnPosition>,
 }
 
+// All of the info needed to spawn a tile
 #[derive(Debug, Default, Clone, Copy)]
 pub struct TileInfo {
     pub tile_type: TileType,
@@ -40,6 +42,9 @@ fn spawn_board(
     for y_pos in 0..num_tiles_y {
         for x_pos in 0..num_tiles_x {
             let current_tile = board.tiles[[y_pos, x_pos]];
+            // we need to invert the y index
+            // To spawn tiles top-down from the selected board array
+            // Note: This panics if the board is immense
             let int_y_pos: i32 = (board.tiles.shape()[0] - y_pos - 1).try_into().unwrap();
             let int_x_pos: i32 = x_pos.try_into().unwrap();
             spawn_tile(
