@@ -9,6 +9,7 @@ use crate::GridPosition;
 pub const TILE_SCALE: Vec3 = Vec3::new(0.3, 0.3, 0.0);
 pub const TILE_SIZE: Vec3 = Vec3::new(900.0, 900.0, 0.0);
 
+// All of the tile types allowed by the Game
 #[derive(Debug, Default, PartialEq, Component, Clone, Copy)]
 pub enum TileType {
     Corner,
@@ -20,6 +21,7 @@ pub enum TileType {
     Any,
 }
 
+// Which ways out of this tile are open
 #[derive(Component, Debug, Default, Clone, Copy)]
 pub struct OpenWays {
     pub top: bool,
@@ -131,6 +133,7 @@ pub fn spawn_tile(
 }
 
 fn rotate_ways(mut open_ways: OpenWays, angle: f32) -> OpenWays {
+    // rotate a tile by angle and get its new open ways
     let old_ways = open_ways;
     if angle == PI || angle == -PI {
         // half-turn
