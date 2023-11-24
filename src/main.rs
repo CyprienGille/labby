@@ -18,7 +18,9 @@ use phases::GamePhasePlugin;
 use player::PlayerPlugin;
 // use debug::DebugPlugin;
 
+// Background color outside of the board
 const BACKGROUND_COLOR: Color = Color::rgb(0.2, 0.3, 0.2);
+// Number of players
 const NUM_PLAYERS: i32 = 4;
 
 #[derive(Resource, Debug)]
@@ -28,10 +30,14 @@ pub struct GameSettings {
 
 #[derive(Resource, Debug)]
 pub struct GameState {
+    // The id of the player whose turn it is
     current_player_id: i32,
+    // whether we are in the board movement phase
+    // (or the player movement phase, if false)
     tile_push_phase: bool,
 }
 
+// The position of a player, a tile or a treasure in tile units
 #[derive(Component, Debug, Default, Clone, Copy, PartialEq)]
 pub struct GridPosition {
     x_pos: i32,
@@ -42,6 +48,8 @@ fn main() {
     App::new()
         //bevy Built-ins
         .insert_resource(ClearColor(BACKGROUND_COLOR))
+        .add_plugins(DefaultPlugins)
+        // User Resources
         .insert_resource(GameSettings {
             num_players: NUM_PLAYERS,
         })
@@ -49,7 +57,6 @@ fn main() {
             current_player_id: 0,
             tile_push_phase: false,
         })
-        .add_plugins(DefaultPlugins)
         // User plugins
         .add_plugins(BoardSelectorPlugin)
         .add_plugins(Camera2dPlugin)
