@@ -12,7 +12,8 @@ pub struct Camera2dPlugin;
 
 impl Plugin for Camera2dPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PostStartup, spawn_camera);
+        app.add_systems(PostStartup, spawn_camera)
+            .add_systems(Update, zoom_camera);
     }
 }
 
@@ -29,9 +30,21 @@ fn spawn_camera(mut commands: Commands, selected_board: Res<SelectedBoard>) {
                 y: (num_tiles_y - 1) as f32 * TILE_SCALE.y * TILE_SIZE.y / 2.0,
                 z: CAMERA_LEVEL,
             },
-            scale: Vec3::new(2.0, 2.0, 1.0),
+            scale: Vec3::new(num_tiles_x as f32 / 2.0, num_tiles_x as f32 / 2.0, 1.0),
             ..default()
         },
         ..default()
     });
+}
+
+fn zoom_camera(mut camera_query: Query<&mut Transform, With<Camera2d>>, keys: Res<Input<KeyCode>>) {
+    let mut camera_transform = camera_query
+        .get_single_mut()
+        .expect("More than one Camera2d!");
+
+    if keys.just_pressed(KeyCode::PageUp) {
+        camera_transform.scale += Vec3::new(1.0, 1.0, 0.0);
+    } else if keys.just_pressed(KeyCode::PageDown) {
+        camera_transform.scale -= Vec3::new(1.0, 1.0, 0.0);
+    }
 }
