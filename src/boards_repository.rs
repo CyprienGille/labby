@@ -9,6 +9,7 @@ use crate::player::SpawnPosition;
 use crate::tile::TileType;
 use crate::GridPosition;
 
+// Set board with set tiles and Any tiles, and spawn positions
 pub static BOARD_0: Lazy<Board> = Lazy::new(|| Board {
     tiles: array![
         [
