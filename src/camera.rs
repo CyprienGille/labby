@@ -5,6 +5,7 @@ use crate::{
     tile::{TILE_SCALE, TILE_SIZE},
 };
 
+// Used for z-ordering
 const CAMERA_LEVEL: f32 = 20.0;
 
 pub struct Camera2dPlugin;
@@ -19,6 +20,8 @@ fn spawn_camera(mut commands: Commands, selected_board: Res<SelectedBoard>) {
     let num_tiles_x = selected_board.board.tiles.shape()[1];
     let num_tiles_y = selected_board.board.tiles.shape()[0];
 
+    // spawn camera above middle of the board
+    // TODO adjust scale according to number of tiles
     commands.spawn(Camera2dBundle {
         transform: Transform {
             translation: Vec3 {

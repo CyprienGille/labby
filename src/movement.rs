@@ -13,6 +13,7 @@ pub enum CanMove {
     No,
 }
 
+// The allowed movement directions
 #[derive(Debug)]
 pub enum Direction {
     Up,
@@ -40,9 +41,11 @@ fn move_current_player(
             && (player.id == game_state.current_player_id)
             && (!game_state.tile_push_phase)
         {
+            // If this player can move, it is their turn and they're not pushing tiles
             if keys.just_pressed(KeyCode::Right)
                 && move_ok(*grid_pos, Direction::Right, &tiles_query)
             {
+                // if right arrow was pressed and this movement is legal, move the player
                 grid_pos.x_pos += 1;
                 transform.translation.x += TILE_SIZE.x * TILE_SCALE.x
             } else if keys.just_pressed(KeyCode::Left)
@@ -70,6 +73,9 @@ fn move_ok(
     wanted_dir: Direction,
     tiles_query: &Query<(&OpenWays, &GridPosition), Without<Player>>,
 ) -> bool {
+    // Check if a desired move is legal (no walls, no outside board)
+
+    // The desired position after moving
     let mut destination = GridPosition {
         ..Default::default()
     };
@@ -91,9 +97,13 @@ fn move_ok(
             destination.y_pos = prev_pos.y_pos;
         }
     }
+    // Openings of the current tile
     let mut current_ways = OpenWays { ..default() };
+    // Openings of the destination tile
     let mut dest_ways = OpenWays { ..default() };
+
     for (open_ways, grid_pos) in tiles_query {
+        // get the openings
         if grid_pos == &prev_pos {
             current_ways = *open_ways;
         }
@@ -102,6 +112,7 @@ fn move_ok(
         }
     }
     match wanted_dir {
+        // evaluates to true if both tiles are open for the desired move
         Direction::Up => current_ways.top && dest_ways.bottom,
         Direction::Down => current_ways.bottom && dest_ways.top,
         Direction::Left => current_ways.left && dest_ways.right,
