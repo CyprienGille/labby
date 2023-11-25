@@ -103,7 +103,7 @@ pub fn spawn_tile(
     });
 }
 
-fn rotate_ways(mut open_ways: OpenWays, angle: f32) -> OpenWays {
+pub fn rotate_ways(mut open_ways: OpenWays, angle: f32) -> OpenWays {
     // rotate a tile by angle and get its new open ways
     let old_ways = open_ways;
     if angle == PI || angle == -PI {
