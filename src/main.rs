@@ -55,7 +55,7 @@ fn main() {
         })
         .insert_resource(GameState {
             current_player_id: 0,
-            tile_push_phase: false,
+            tile_push_phase: true,
         })
         // User plugins
         .add_plugins(BoardSelectorPlugin)
