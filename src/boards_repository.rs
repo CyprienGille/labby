@@ -120,6 +120,11 @@ pub static BOARD_0: Lazy<Board> = Lazy::new(|| Board {
         SpawnPosition::Position(GridPosition { x_pos: 4, y_pos: 4 }),
         SpawnPosition::Position(GridPosition { x_pos: 4, y_pos: 0 }),
     ],
+    external_tile: TileInfo {
+        tile_type: TileType::Corner,
+        angle: 0.0,
+        can_move: CanMove::Yes,
+    },
 });
 
 pub static BOARD_CLASSIC: Lazy<Board> = Lazy::new(|| Board {
@@ -324,4 +329,9 @@ pub static BOARD_CLASSIC: Lazy<Board> = Lazy::new(|| Board {
         SpawnPosition::Position(GridPosition { x_pos: 6, y_pos: 6 }),
         SpawnPosition::Position(GridPosition { x_pos: 6, y_pos: 0 }),
     ],
+    external_tile: TileInfo {
+        tile_type: TileType::Corner,
+        angle: 0.0,
+        can_move: CanMove::Yes,
+    },
 });

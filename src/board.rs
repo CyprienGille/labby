@@ -12,6 +12,7 @@ use crate::tile::TileType;
 pub struct Board {
     pub tiles: Array2<TileInfo>,
     pub spawn_positions: Vec<SpawnPosition>,
+    pub external_tile: TileInfo,
 }
 
 // All of the info needed to spawn a tile
@@ -58,4 +59,15 @@ fn spawn_board(
             );
         }
     }
+
+    // External tile for pushing
+    spawn_tile(
+        -1,
+        0,
+        board.external_tile.tile_type,
+        board.external_tile.angle,
+        board.external_tile.can_move,
+        &mut commands,
+        &asset_server,
+    );
 }
