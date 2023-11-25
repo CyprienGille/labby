@@ -39,6 +39,7 @@ fn move_current_player(
     tiles_query: Query<(&OpenWays, &GridPosition), Without<Player>>,
     game_state: Res<GameState>,
     keys: Res<Input<KeyCode>>,
+    selected_board: Res<SelectedBoard>,
 ) {
     for (mut grid_pos, mut transform, can_move, player) in &mut player_query {
         if matches!(can_move, CanMove::Yes)
@@ -47,23 +48,23 @@ fn move_current_player(
         {
             // If this player can move, it is their turn and they're not pushing tiles
             if keys.just_pressed(KeyCode::Right)
-                && player_move_ok(*grid_pos, Direction::Right, &tiles_query)
+                && player_move_ok(*grid_pos, Direction::Right, &tiles_query, &selected_board)
             {
                 // if right arrow was pressed and this movement is legal, move the player
                 grid_pos.x_pos += 1;
                 transform.translation.x += TILE_SIZE.x * TILE_SCALE.x
             } else if keys.just_pressed(KeyCode::Left)
-                && player_move_ok(*grid_pos, Direction::Left, &tiles_query)
+                && player_move_ok(*grid_pos, Direction::Left, &tiles_query, &selected_board)
             {
                 grid_pos.x_pos -= 1;
                 transform.translation.x -= TILE_SIZE.x * TILE_SCALE.x
             } else if keys.just_pressed(KeyCode::Up)
-                && player_move_ok(*grid_pos, Direction::Up, &tiles_query)
+                && player_move_ok(*grid_pos, Direction::Up, &tiles_query, &selected_board)
             {
                 grid_pos.y_pos += 1;
                 transform.translation.y += TILE_SIZE.y * TILE_SCALE.y
             } else if keys.just_pressed(KeyCode::Down)
-                && player_move_ok(*grid_pos, Direction::Down, &tiles_query)
+                && player_move_ok(*grid_pos, Direction::Down, &tiles_query, &selected_board)
             {
                 grid_pos.y_pos -= 1;
                 transform.translation.y -= TILE_SIZE.y * TILE_SCALE.y
@@ -76,8 +77,16 @@ fn player_move_ok(
     prev_pos: GridPosition,
     wanted_dir: Direction,
     tiles_query: &Query<(&OpenWays, &GridPosition), Without<Player>>,
+    selected_board: &Res<SelectedBoard>,
 ) -> bool {
     // Check if a desired move is legal (no walls, no outside board)
+
+    let max_x: i32 = (selected_board.board.tiles.shape()[1] - 1)
+        .try_into()
+        .unwrap();
+    let max_y: i32 = (selected_board.board.tiles.shape()[0] - 1)
+        .try_into()
+        .unwrap();
 
     // The desired position after moving
     let mut destination = GridPosition {
@@ -92,15 +101,24 @@ fn player_move_ok(
             destination.y_pos = prev_pos.y_pos - 1;
             destination.x_pos = prev_pos.x_pos;
         }
-        Direction::Left => {
-            destination.x_pos = prev_pos.x_pos - 1;
-            destination.y_pos = prev_pos.y_pos;
-        }
         Direction::Right => {
             destination.x_pos = prev_pos.x_pos + 1;
             destination.y_pos = prev_pos.y_pos;
         }
+        Direction::Left => {
+            destination.x_pos = prev_pos.x_pos - 1;
+            destination.y_pos = prev_pos.y_pos;
+        }
     }
+
+    if destination.x_pos == -1
+        || destination.y_pos == -1
+        || destination.x_pos > max_x
+        || destination.y_pos > max_y
+    {
+        return false;
+    }
+
     // Openings of the current tile
     let mut current_ways = OpenWays { ..default() };
     // Openings of the destination tile
