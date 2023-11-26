@@ -306,13 +306,13 @@ fn trigger_push(
 ) {
     let (max_x, max_y) = get_max_coords(&selected_board);
 
-    if game_state.tile_push_phase
-        && (keys.just_pressed(KeyCode::Return) || keys.just_pressed(KeyCode::S))
-    {
-        push_tile(&mut tiles_query, max_x, max_y)
-    }
-    if keys.just_released(KeyCode::S) {
-        push_tile(&mut tiles_query, max_x, max_y)
+    if game_state.tile_push_phase {
+        if keys.just_pressed(KeyCode::Return) || keys.just_pressed(KeyCode::S) {
+            push_tile(&mut tiles_query, max_x, max_y)
+        }
+        if keys.just_released(KeyCode::S) {
+            push_tile(&mut tiles_query, max_x, max_y)
+        }
     }
 }
 
