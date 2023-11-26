@@ -1,9 +1,7 @@
 use bevy::prelude::*;
 use rand::{thread_rng, Rng};
 
-use crate::{
-    board_selector::SelectedBoard, movement::CanMove, tile::TILE_SIZE, GameSettings, GridPosition,
-};
+use crate::{board_selector::SelectedBoard, tile::TILE_SIZE, GameSettings, GridPosition};
 
 const TOKEN_SCALE: Vec3 = Vec3::new(0.3, 0.3, 0.0);
 // const TOKEN_SIZE: Vec3 = Vec3::new(280.0, 280.0, 0.0);
@@ -31,7 +29,6 @@ pub struct Player {
 pub struct PlayerBundle {
     player: Player,
     pos: GridPosition,
-    can_move: CanMove,
     sprite: SpriteBundle,
 }
 
@@ -39,7 +36,7 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PostStartup, spawn_players);
+        app.add_systems(Startup, spawn_players);
     }
 }
 
@@ -95,7 +92,6 @@ fn spawn_player(
     commands.spawn(PlayerBundle {
         player: Player { id },
         pos: GridPosition { x_pos, y_pos },
-        can_move: CanMove::No,
         sprite: SpriteBundle {
             texture: asset_server.load("players/Commoner.png"),
             transform: Transform {

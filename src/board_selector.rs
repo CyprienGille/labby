@@ -15,7 +15,7 @@ pub struct BoardSelectorPlugin;
 
 impl Plugin for BoardSelectorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, select_board);
+        app.add_systems(PreStartup, select_board);
     }
 }
 

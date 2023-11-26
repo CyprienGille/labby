@@ -27,7 +27,7 @@ pub struct BoardPlugin;
 
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PostStartup, spawn_board);
+        app.add_systems(Startup, spawn_board);
     }
 }
 

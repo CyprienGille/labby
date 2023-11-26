@@ -12,7 +12,7 @@ pub struct Camera2dPlugin;
 
 impl Plugin for Camera2dPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PostStartup, spawn_camera)
+        app.add_systems(Startup, spawn_camera)
             .add_systems(Update, zoom_camera);
     }
 }
