@@ -31,7 +31,7 @@ impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, move_current_player)
             .add_systems(Update, move_current_tile)
-            .add_systems(Update, push_tile);
+            .add_systems(Update, trigger_push);
     }
 }
 
@@ -298,24 +298,67 @@ fn tile_move_ok(grid_pos: &GridPosition, wanted_dir: Direction, max_x: i32, max_
     }
 }
 
-fn push_tile(
+fn trigger_push(
     mut tiles_query: Query<(&mut Transform, &mut GridPosition), With<TileType>>,
     selected_board: Res<SelectedBoard>,
     keys: Res<Input<KeyCode>>,
+    game_state: Res<GameState>,
 ) {
-    if keys.just_pressed(KeyCode::Return) {
-        let mut external_pos = GridPosition {
-            ..Default::default()
-        };
-        let (max_x, max_y) = get_max_coords(&selected_board);
+    let (max_x, max_y) = get_max_coords(&selected_board);
 
-        for (_, grid_pos) in &tiles_query {
-            if pos_is_external(grid_pos, max_x, max_y) {
-                external_pos = *grid_pos;
-            }
+    if game_state.tile_push_phase
+        && (keys.just_pressed(KeyCode::Return) || keys.just_pressed(KeyCode::S))
+    {
+        push_tile(&mut tiles_query, max_x, max_y)
+    }
+    if keys.just_released(KeyCode::S) {
+        push_tile(&mut tiles_query, max_x, max_y)
+    }
+}
+
+fn push_tile(
+    tiles_query: &mut Query<(&mut Transform, &mut GridPosition), With<TileType>>,
+    max_x: i32,
+    max_y: i32,
+) {
+    let mut external_pos = GridPosition {
+        ..Default::default()
+    };
+
+    for (_, grid_pos) in &mut *tiles_query {
+        if pos_is_external(&grid_pos, max_x, max_y) {
+            external_pos = *grid_pos;
         }
-        for (mut transform, mut grid_pos) in &mut tiles_query {
-            todo!()
+    }
+    for (mut transform, mut grid_pos) in tiles_query.iter_mut() {
+        if external_pos.x_pos == -1 {
+            // pushing from the left side of the board
+            if grid_pos.y_pos == external_pos.y_pos {
+                // tiles horizontally aligned with the external
+                grid_pos.x_pos += 1;
+                transform.translation.x += TILE_SIZE.x * TILE_SCALE.x;
+            }
+        } else if external_pos.y_pos == -1 {
+            // pushing from the bottom side of the board
+            if grid_pos.x_pos == external_pos.x_pos {
+                // tiles vertically aligned with the external
+                grid_pos.y_pos += 1;
+                transform.translation.y += TILE_SIZE.y * TILE_SCALE.y;
+            }
+        } else if external_pos.x_pos == max_x + 1 {
+            // pushing from the right side of the board
+            if grid_pos.y_pos == external_pos.y_pos {
+                // tiles vertically aligned with the external
+                grid_pos.x_pos -= 1;
+                transform.translation.x -= TILE_SIZE.x * TILE_SCALE.x;
+            }
+        } else if external_pos.y_pos == max_y {
+            // pushing from the left side of the board
+            if grid_pos.x_pos == external_pos.x_pos {
+                // tiles vertically aligned with the external
+                grid_pos.y_pos += 1;
+                transform.translation.y += TILE_SIZE.y * TILE_SCALE.y;
+            }
         }
     }
 }

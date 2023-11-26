@@ -28,7 +28,7 @@ fn check_phase(
         game_state.current_player_id = (game_state.current_player_id + 1) % NUM_PLAYERS;
         game_state.tile_push_phase = true;
     }
-    if keys.just_pressed(KeyCode::Return) {
+    if keys.just_released(KeyCode::Return) {
         game_state.tile_push_phase = false;
     }
 }
