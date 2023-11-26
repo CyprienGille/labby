@@ -299,7 +299,7 @@ fn tile_move_ok(grid_pos: &GridPosition, wanted_dir: Direction, max_x: i32, max_
 }
 
 fn trigger_push(
-    mut tiles_query: Query<(&mut Transform, &mut GridPosition), With<TileType>>,
+    mut query: Query<(&mut Transform, &mut GridPosition)>,
     selected_board: Res<SelectedBoard>,
     keys: Res<Input<KeyCode>>,
     game_state: Res<GameState>,
@@ -308,19 +308,15 @@ fn trigger_push(
 
     if game_state.tile_push_phase {
         if keys.just_pressed(KeyCode::Return) || keys.just_pressed(KeyCode::S) {
-            push_tile(&mut tiles_query, max_x, max_y)
+            push_tile(&mut query, max_x, max_y)
         }
         if keys.just_released(KeyCode::S) {
-            push_tile(&mut tiles_query, max_x, max_y)
+            push_tile(&mut query, max_x, max_y)
         }
     }
 }
 
-fn push_tile(
-    tiles_query: &mut Query<(&mut Transform, &mut GridPosition), With<TileType>>,
-    max_x: i32,
-    max_y: i32,
-) {
+fn push_tile(tiles_query: &mut Query<(&mut Transform, &mut GridPosition)>, max_x: i32, max_y: i32) {
     let mut external_pos = GridPosition {
         ..Default::default()
     };
