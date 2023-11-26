@@ -25,28 +25,35 @@ pub enum Direction {
     Right,
 }
 
+#[derive(Resource, Debug, Default)]
+struct IllegalPushPositions {
+    positions: Vec<GridPosition>,
+}
+
 pub struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, move_current_player)
-            .add_systems(Update, move_current_tile)
-            .add_systems(Update, trigger_push);
+        app.insert_resource(IllegalPushPositions {
+            ..Default::default()
+        })
+        .add_systems(PostStartup, compute_illegal_pushes)
+        .add_systems(Update, move_current_player)
+        .add_systems(Update, move_current_tile)
+        .add_systems(Update, trigger_push)
+        .add_systems(Update, warp_player);
     }
 }
 
 fn move_current_player(
-    mut player_query: Query<(&mut GridPosition, &mut Transform, &CanMove, &Player)>,
+    mut player_query: Query<(&mut GridPosition, &mut Transform, &Player)>,
     tiles_query: Query<(&OpenWays, &GridPosition), Without<Player>>,
     game_state: Res<GameState>,
     keys: Res<Input<KeyCode>>,
     selected_board: Res<SelectedBoard>,
 ) {
-    for (mut grid_pos, mut transform, can_move, player) in &mut player_query {
-        if matches!(can_move, CanMove::Yes)
-            && (player.id == game_state.current_player_id)
-            && (!game_state.tile_push_phase)
-        {
+    for (mut grid_pos, mut transform, player) in &mut player_query {
+        if (player.id == game_state.current_player_id) && (!game_state.tile_push_phase) {
             // If this player can move, it is their turn and they're not pushing tiles
             if keys.just_pressed(KeyCode::Right)
                 && player_move_ok(*grid_pos, Direction::Right, &tiles_query, &selected_board)
@@ -299,34 +306,45 @@ fn tile_move_ok(grid_pos: &GridPosition, wanted_dir: Direction, max_x: i32, max_
 }
 
 fn trigger_push(
-    mut query: Query<(&mut Transform, &mut GridPosition)>,
+    mut entities_query: Query<(&mut Transform, &mut GridPosition)>,
     selected_board: Res<SelectedBoard>,
     keys: Res<Input<KeyCode>>,
-    game_state: Res<GameState>,
+    mut game_state: ResMut<GameState>,
+    illegal: Res<IllegalPushPositions>,
 ) {
     let (max_x, max_y) = get_max_coords(&selected_board);
 
-    if game_state.tile_push_phase {
-        if keys.just_pressed(KeyCode::Return) || keys.just_pressed(KeyCode::S) {
-            push_tile(&mut query, max_x, max_y)
-        }
-        if keys.just_released(KeyCode::S) {
-            push_tile(&mut query, max_x, max_y)
-        }
-    }
-}
-
-fn push_tile(tiles_query: &mut Query<(&mut Transform, &mut GridPosition)>, max_x: i32, max_y: i32) {
     let mut external_pos = GridPosition {
         ..Default::default()
     };
 
-    for (_, grid_pos) in &mut *tiles_query {
+    for (_, grid_pos) in &mut entities_query {
         if pos_is_external(&grid_pos, max_x, max_y) {
             external_pos = *grid_pos;
         }
     }
-    for (mut transform, mut grid_pos) in tiles_query.iter_mut() {
+
+    if game_state.tile_push_phase && !illegal.positions.contains(&external_pos) {
+        if keys.just_pressed(KeyCode::Return) {
+            push_tile(&mut entities_query, external_pos, max_x, max_y);
+            game_state.tile_push_phase = false;
+        }
+        if keys.just_pressed(KeyCode::S) {
+            push_tile(&mut entities_query, external_pos, max_x, max_y);
+        }
+        if keys.just_released(KeyCode::S) {
+            push_tile(&mut entities_query, external_pos, max_x, max_y);
+        }
+    }
+}
+
+fn push_tile(
+    entities_query: &mut Query<(&mut Transform, &mut GridPosition)>,
+    external_pos: GridPosition,
+    max_x: i32,
+    max_y: i32,
+) {
+    for (mut transform, mut grid_pos) in entities_query.iter_mut() {
         if external_pos.x_pos == -1 {
             // pushing from the left side of the board
             if grid_pos.y_pos == external_pos.y_pos {
@@ -344,17 +362,84 @@ fn push_tile(tiles_query: &mut Query<(&mut Transform, &mut GridPosition)>, max_x
         } else if external_pos.x_pos == max_x + 1 {
             // pushing from the right side of the board
             if grid_pos.y_pos == external_pos.y_pos {
-                // tiles vertically aligned with the external
+                // tiles horizontally aligned with the external
                 grid_pos.x_pos -= 1;
                 transform.translation.x -= TILE_SIZE.x * TILE_SCALE.x;
             }
-        } else if external_pos.y_pos == max_y {
-            // pushing from the left side of the board
+        } else if external_pos.y_pos == max_y + 1 {
+            // pushing from the top side of the board
             if grid_pos.x_pos == external_pos.x_pos {
                 // tiles vertically aligned with the external
-                grid_pos.y_pos += 1;
-                transform.translation.y += TILE_SIZE.y * TILE_SCALE.y;
+                grid_pos.y_pos -= 1;
+                transform.translation.y -= TILE_SIZE.y * TILE_SCALE.y;
             }
+        }
+    }
+}
+
+fn compute_illegal_pushes(
+    tiles_query: Query<(&GridPosition, &CanMove), With<TileType>>,
+    mut illegal: ResMut<IllegalPushPositions>,
+    selected_board: Res<SelectedBoard>,
+) {
+    let (max_x, max_y) = get_max_coords(&selected_board);
+
+    for (grid_pos, can_move) in &tiles_query {
+        if matches!(can_move, CanMove::No) {
+            let new_illegal_left = GridPosition {
+                x_pos: -1,
+                y_pos: grid_pos.y_pos,
+            };
+            let new_illegal_bottom = GridPosition {
+                x_pos: grid_pos.x_pos,
+                y_pos: -1,
+            };
+            let new_illegal_right = GridPosition {
+                x_pos: max_x + 1,
+                y_pos: grid_pos.y_pos,
+            };
+            let new_illegal_top = GridPosition {
+                x_pos: grid_pos.x_pos,
+                y_pos: max_y + 1,
+            };
+            if !illegal.positions.contains(&new_illegal_left) {
+                illegal.positions.push(new_illegal_left);
+            }
+            if !illegal.positions.contains(&new_illegal_bottom) {
+                illegal.positions.push(new_illegal_bottom);
+            }
+            if !illegal.positions.contains(&new_illegal_right) {
+                illegal.positions.push(new_illegal_right);
+            }
+            if !illegal.positions.contains(&new_illegal_top) {
+                illegal.positions.push(new_illegal_top);
+            }
+        }
+    }
+}
+
+fn warp_player(
+    mut player_query: Query<(&mut GridPosition, &mut Transform), With<Player>>,
+    selected_board: Res<SelectedBoard>,
+) {
+    let (max_x, max_y) = get_max_coords(&selected_board);
+    for (mut grid_pos, mut transform) in &mut player_query {
+        if grid_pos.x_pos == -1 {
+            // Player is on the left side of the board
+            grid_pos.x_pos = max_x;
+            transform.translation.x = max_x as f32 * TILE_SIZE.x * TILE_SCALE.x;
+        } else if grid_pos.y_pos == -1 {
+            // Player is on the bottom side of the board
+            grid_pos.y_pos = max_y;
+            transform.translation.y = max_y as f32 * TILE_SIZE.y * TILE_SCALE.y;
+        } else if grid_pos.x_pos == max_x + 1 {
+            // Player is on the right side of the board
+            grid_pos.x_pos = 0;
+            transform.translation.x = 0.0;
+        } else if grid_pos.y_pos == max_y + 1 {
+            // Player is on the top side of the board
+            grid_pos.y_pos = 0;
+            transform.translation.y = 0.0;
         }
     }
 }
