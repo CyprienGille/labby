@@ -30,7 +30,8 @@ pub struct MovementPlugin;
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, move_current_player)
-            .add_systems(Update, move_current_tile);
+            .add_systems(Update, move_current_tile)
+            .add_systems(Update, push_tile);
     }
 }
 
@@ -81,12 +82,7 @@ fn player_move_ok(
 ) -> bool {
     // Check if a desired move is legal (no walls, no outside board)
 
-    let max_x: i32 = (selected_board.board.tiles.shape()[1] - 1)
-        .try_into()
-        .unwrap();
-    let max_y: i32 = (selected_board.board.tiles.shape()[0] - 1)
-        .try_into()
-        .unwrap();
+    let (max_x, max_y) = get_max_coords(selected_board);
 
     // The desired position after moving
     let mut destination = GridPosition {
@@ -111,11 +107,8 @@ fn player_move_ok(
         }
     }
 
-    if destination.x_pos == -1
-        || destination.y_pos == -1
-        || destination.x_pos > max_x
-        || destination.y_pos > max_y
-    {
+    if pos_is_external(&destination, max_x, max_y) {
+        // no going outside the board
         return false;
     }
 
@@ -148,19 +141,10 @@ fn move_current_tile(
     selected_board: Res<SelectedBoard>,
     keys: Res<Input<KeyCode>>,
 ) {
-    let max_x: i32 = (selected_board.board.tiles.shape()[1] - 1)
-        .try_into()
-        .unwrap();
-    let max_y: i32 = (selected_board.board.tiles.shape()[0] - 1)
-        .try_into()
-        .unwrap();
+    let (max_x, max_y) = get_max_coords(&selected_board);
     if game_state.tile_push_phase {
         for (mut grid_pos, mut transform, mut open_ways) in &mut tiles_query {
-            if grid_pos.x_pos == -1
-                || grid_pos.y_pos == -1
-                || grid_pos.x_pos > max_x
-                || grid_pos.y_pos > max_y
-            {
+            if pos_is_external(&grid_pos, max_x, max_y) {
                 // This is the external tile
                 if keys.just_pressed(KeyCode::Up)
                     && tile_move_ok(&grid_pos, Direction::Up, max_x, max_y)
@@ -312,4 +296,40 @@ fn tile_move_ok(grid_pos: &GridPosition, wanted_dir: Direction, max_x: i32, max_
         Direction::Left => grid_pos.x_pos > -1,
         Direction::Right => grid_pos.x_pos < max_x + 1,
     }
+}
+
+fn push_tile(
+    mut tiles_query: Query<(&mut Transform, &mut GridPosition), With<TileType>>,
+    selected_board: Res<SelectedBoard>,
+    keys: Res<Input<KeyCode>>,
+) {
+    if keys.just_pressed(KeyCode::Return) {
+        let mut external_pos = GridPosition {
+            ..Default::default()
+        };
+        let (max_x, max_y) = get_max_coords(&selected_board);
+
+        for (_, grid_pos) in &tiles_query {
+            if pos_is_external(grid_pos, max_x, max_y) {
+                external_pos = *grid_pos;
+            }
+        }
+        for (mut transform, mut grid_pos) in &mut tiles_query {
+            todo!()
+        }
+    }
+}
+
+fn get_max_coords(selected_board: &Res<SelectedBoard>) -> (i32, i32) {
+    let max_x: i32 = (selected_board.board.tiles.shape()[1] - 1)
+        .try_into()
+        .unwrap();
+    let max_y: i32 = (selected_board.board.tiles.shape()[0] - 1)
+        .try_into()
+        .unwrap();
+    (max_x, max_y)
+}
+
+fn pos_is_external(pos: &GridPosition, max_x: i32, max_y: i32) -> bool {
+    pos.x_pos == -1 || pos.y_pos == -1 || pos.x_pos > max_x || pos.y_pos > max_y
 }
