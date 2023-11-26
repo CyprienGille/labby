@@ -123,7 +123,7 @@ pub static BOARD_0: Lazy<Board> = Lazy::new(|| Board {
     external_tile: TileInfo {
         tile_type: TileType::Corner,
         angle: 0.0,
-        can_move: CanMove::Yes,
+        ..Default::default()
     },
 });
 
@@ -332,6 +332,6 @@ pub static BOARD_CLASSIC: Lazy<Board> = Lazy::new(|| Board {
     external_tile: TileInfo {
         tile_type: TileType::Corner,
         angle: 0.0,
-        can_move: CanMove::Yes,
+        ..Default::default()
     },
 });
