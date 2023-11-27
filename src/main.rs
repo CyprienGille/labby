@@ -19,7 +19,7 @@ use player::PlayerPlugin;
 // use debug::DebugPlugin;
 
 // Background color outside of the board
-const BACKGROUND_COLOR: Color = Color::rgb(0.2, 0.3, 0.2);
+const BACKGROUND_COLOR: Color = Color::rgb(0.1, 0.2, 0.1);
 // Number of players
 const NUM_PLAYERS: i32 = 4;
 
