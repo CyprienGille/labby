@@ -15,7 +15,7 @@ pub enum SpawnPosition {
 }
 
 #[derive(Debug)]
-pub enum GridAxis {
+enum GridAxis {
     X,
     Y,
 }
@@ -26,7 +26,7 @@ pub struct Player {
 }
 
 #[derive(Bundle)]
-pub struct PlayerBundle {
+struct PlayerBundle {
     player: Player,
     pos: GridPosition,
     sprite: SpriteBundle,
@@ -36,11 +36,11 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_players);
+        app.add_systems(Startup, spawn_all_players);
     }
 }
 
-fn spawn_players(
+fn spawn_all_players(
     mut commands: Commands,
     game_settings: Res<GameSettings>,
     selected_board: Res<SelectedBoard>,
