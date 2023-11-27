@@ -310,7 +310,7 @@ fn trigger_push(
     selected_board: Res<SelectedBoard>,
     keys: Res<Input<KeyCode>>,
     mut game_state: ResMut<GameState>,
-    illegal: Res<IllegalPushPositions>,
+    mut illegal: ResMut<IllegalPushPositions>,
 ) {
     let (max_x, max_y) = get_max_coords(&selected_board);
 
@@ -328,6 +328,10 @@ fn trigger_push(
         if keys.just_pressed(KeyCode::Return) {
             push_tile(&mut entities_query, external_pos, max_x, max_y);
             game_state.tile_push_phase = false;
+            illegal
+                .positions
+                .push(get_opposite_pos(&external_pos, max_x, max_y));
+            illegal.positions.retain(|x| *x != external_pos);
         }
         if keys.just_pressed(KeyCode::S) {
             push_tile(&mut entities_query, external_pos, max_x, max_y);
@@ -374,6 +378,36 @@ fn push_tile(
                 transform.translation.y -= TILE_SIZE.y * TILE_SCALE.y;
             }
         }
+    }
+}
+
+fn get_opposite_pos(pos: &GridPosition, max_x: i32, max_y: i32) -> GridPosition {
+    if pos.x_pos == -1 {
+        // position is on the left side
+        GridPosition {
+            x_pos: max_x + 1,
+            y_pos: pos.y_pos,
+        }
+    } else if pos.y_pos == -1 {
+        // position is on the bottom side
+        GridPosition {
+            x_pos: pos.x_pos,
+            y_pos: max_y + 1,
+        }
+    } else if pos.x_pos == max_x + 1 {
+        // position is on the right side
+        GridPosition {
+            x_pos: -1,
+            y_pos: pos.y_pos,
+        }
+    } else if pos.y_pos == max_y + 1 {
+        // position is on the top side
+        GridPosition {
+            x_pos: pos.x_pos,
+            y_pos: -1,
+        }
+    } else {
+        *pos
     }
 }
 
