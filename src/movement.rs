@@ -325,7 +325,7 @@ fn trigger_push(
     }
 
     if game_state.tile_push_phase && !illegal.positions.contains(&external_pos) {
-        if keys.just_pressed(KeyCode::Return) {
+        if keys.just_pressed(KeyCode::Return) && !keys.pressed(KeyCode::S) {
             push_tile(&mut entities_query, external_pos, max_x, max_y);
             game_state.tile_push_phase = false;
             illegal
@@ -334,9 +334,11 @@ fn trigger_push(
             illegal.positions.retain(|x| *x != external_pos);
         }
         if keys.just_pressed(KeyCode::S) {
+            // Simulated push
             push_tile(&mut entities_query, external_pos, max_x, max_y);
         }
         if keys.just_released(KeyCode::S) {
+            // End of simulation
             push_tile(&mut entities_query, external_pos, max_x, max_y);
         }
     }
