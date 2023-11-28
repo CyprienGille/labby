@@ -5,6 +5,25 @@ use crate::{board_selector::SelectedBoard, tile::TILE_SIZE, GameSettings, GridPo
 
 const TOKEN_SCALE: Vec3 = Vec3::new(0.3, 0.3, 0.0);
 // const TOKEN_SIZE: Vec3 = Vec3::new(280.0, 280.0, 0.0);
+const WIGGLE_VALUE: f32 = 20.0;
+
+const SPRITES: [&str; 4] = [
+    "players/Commoner.png",
+    "players/Genie.png",
+    "players/Harengon.png",
+    "players/Speaker.png",
+];
+
+#[derive(Resource, Debug, Default)]
+struct WiggledPlayers {
+    pairs: Vec<PlayerPair>,
+}
+
+#[derive(Debug, Default, PartialEq)]
+struct PlayerPair {
+    id_1: i32,
+    id_2: i32,
+}
 
 // A spawn position, specified or not
 #[derive(Default, Debug, Clone, Copy)]
@@ -36,7 +55,11 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_all_players);
+        app.insert_resource(WiggledPlayers {
+            ..Default::default()
+        })
+        .add_systems(Startup, spawn_all_players)
+        .add_systems(Update, unstack_players);
     }
 }
 
@@ -93,7 +116,7 @@ fn spawn_player(
         player: Player { id },
         pos: GridPosition { x_pos, y_pos },
         sprite: SpriteBundle {
-            texture: asset_server.load("players/Commoner.png"),
+            texture: asset_server.load(SPRITES[(id % 4) as usize]),
             transform: Transform {
                 translation: Vec3::new(
                     x_pos as f32 * TILE_SIZE.x * TOKEN_SCALE.x,
@@ -121,5 +144,37 @@ fn get_random_pos_on_axis(axis: GridAxis, selected_board: &Res<SelectedBoard>) -
             .gen_range(0..selected_board.board.tiles.shape()[0])
             .try_into()
             .unwrap(),
+    }
+}
+
+fn unstack_players(
+    mut player_query: Query<(&GridPosition, &mut Transform, &Player)>,
+    mut wiggled_players: ResMut<WiggledPlayers>,
+) {
+    let mut combinations = player_query.iter_combinations_mut();
+    while let Some(
+        [(grid_pos_1, mut transform_1, player_1), (grid_pos_2, mut transform_2, player_2)],
+    ) = combinations.fetch_next()
+    {
+        let pair = PlayerPair {
+            id_1: player_1.id,
+            id_2: player_2.id,
+        };
+        let same_tile = grid_pos_1 == grid_pos_2;
+
+        if wiggled_players.pairs.contains(&pair) {
+            // if the players have been wiggled
+            if !same_tile {
+                // If the two players are no longer on the same tile
+                transform_1.translation.x -= WIGGLE_VALUE;
+                transform_2.translation.y -= WIGGLE_VALUE;
+                wiggled_players.pairs.retain(|x| *x != pair);
+            }
+        } else if same_tile {
+            // If the two players are on the same tile and have not been wiggled
+            transform_1.translation.x += WIGGLE_VALUE;
+            transform_2.translation.y += WIGGLE_VALUE;
+            wiggled_players.pairs.push(pair);
+        }
     }
 }
