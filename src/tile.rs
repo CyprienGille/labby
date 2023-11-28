@@ -51,7 +51,7 @@ pub fn spawn_tile(
 ) {
     // If tile_type is Any, pick one among a list of chosen types
     if tile_type == TileType::Any {
-        tile_type = *vec![
+        tile_type = *[
             TileType::Corner,
             TileType::Straight,
             TileType::T,
