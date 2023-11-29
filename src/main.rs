@@ -18,6 +18,7 @@ use camera::Camera2dPlugin;
 use movement::MovementPlugin;
 use phases::GamePhasePlugin;
 use player::PlayerPlugin;
+use treasure::TreasurePlugin;
 // use debug::DebugPlugin;
 
 // Background color outside of the board
@@ -69,6 +70,7 @@ fn main() {
         .add_plugins(PlayerPlugin)
         .add_plugins(MovementPlugin)
         .add_plugins(GamePhasePlugin)
+        .add_plugins(TreasurePlugin)
         // Debug plugin
         // .add_plugins(DebugPlugin)
         .run();
