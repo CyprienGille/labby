@@ -1,3 +1,4 @@
+mod actors;
 mod board;
 mod board_selector;
 mod boards_repository;
@@ -10,6 +11,7 @@ mod tile;
 mod treasure;
 
 use bevy::prelude::*;
+
 use board::BoardPlugin;
 use board_selector::BoardSelectorPlugin;
 use camera::Camera2dPlugin;
@@ -22,10 +24,12 @@ use player::PlayerPlugin;
 const BACKGROUND_COLOR: Color = Color::rgb(0.1, 0.2, 0.1);
 // Number of players
 const NUM_PLAYERS: i32 = 4;
+const TREASURES_TO_GET: i32 = 8;
 
 #[derive(Resource, Debug)]
 pub struct GameSettings {
     num_players: i32,
+    treasures_to_get: i32,
 }
 
 #[derive(Resource, Debug)]
@@ -52,6 +56,7 @@ fn main() {
         // User Resources
         .insert_resource(GameSettings {
             num_players: NUM_PLAYERS,
+            treasures_to_get: TREASURES_TO_GET,
         })
         .insert_resource(GameState {
             current_player_id: 0,

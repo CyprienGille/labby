@@ -2,10 +2,10 @@ use ndarray::prelude::*;
 use once_cell::sync::Lazy;
 use std::f32::consts::PI;
 
+use crate::actors::SpawnPosition;
 use crate::board::Board;
 use crate::board::TileInfo;
 use crate::movement::CanMove;
-use crate::player::SpawnPosition;
 use crate::tile::TileType;
 use crate::GridPosition;
 

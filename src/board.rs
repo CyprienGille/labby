@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 use ndarray::prelude::*;
 
+use crate::actors::SpawnPosition;
 use crate::board_selector::SelectedBoard;
 use crate::movement::CanMove;
-use crate::player::SpawnPosition;
 use crate::tile::spawn_tile;
 use crate::tile::TileType;
 
