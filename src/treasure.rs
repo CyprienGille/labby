@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 use std::fs::read_dir;
 
 use crate::{
@@ -23,11 +23,18 @@ struct TreasureBundle {
     sprite: SpriteBundle,
 }
 
+#[derive(Resource, Debug, Default)]
+struct TreasureLists {
+    lists: HashMap<i32, Vec<i32>>,
+}
+
 pub struct TreasurePlugin;
 
 impl Plugin for TreasurePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_all_treasures)
+        app.insert_resource(TreasureLists { ..default() })
+            .add_systems(Startup, spawn_all_treasures)
+            .add_systems(PostStartup, init_treasure_lists)
             .add_systems(Update, move_treasure_with_ext_tile);
     }
 }
@@ -46,6 +53,7 @@ fn spawn_all_treasures(
         .collect::<Vec<_>>();
 
     let mut all_player_spawns: Vec<GridPosition> = vec![];
+    let mut used_pos: Vec<GridPosition> = vec![];
 
     for spawn_pos in &selected_board.board.spawn_positions {
         match spawn_pos {
@@ -57,7 +65,9 @@ fn spawn_all_treasures(
     for id in 0..(game_settings.num_players * game_settings.treasures_to_get) {
         let mut x_pos = get_random_pos_on_axis(GridAxis::X, &selected_board);
         let mut y_pos = get_random_pos_on_axis(GridAxis::Y, &selected_board);
-        while all_player_spawns.contains(&GridPosition { x_pos, y_pos }) {
+        while all_player_spawns.contains(&GridPosition { x_pos, y_pos })
+            || used_pos.contains(&GridPosition { x_pos, y_pos })
+        {
             x_pos = get_random_pos_on_axis(GridAxis::X, &selected_board);
             y_pos = get_random_pos_on_axis(GridAxis::Y, &selected_board);
         }
@@ -69,6 +79,7 @@ fn spawn_all_treasures(
             &asset_server,
             &sprite_paths,
         );
+        used_pos.push(GridPosition { x_pos, y_pos });
     }
 }
 
@@ -98,6 +109,8 @@ fn spawn_treasure(
         },
     });
 }
+
+fn init_treasure_lists(treasure_lists: ResMut<TreasureLists>, game_settings: Res<GameSettings>) {}
 
 fn move_treasure_with_ext_tile(
     tiles_query: Query<&GridPosition, With<TileType>>,
