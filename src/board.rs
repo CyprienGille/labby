@@ -12,6 +12,7 @@ use crate::tile::TileType;
 pub struct Board {
     pub tiles: Array2<TileInfo>,
     pub spawn_positions: Vec<SpawnPosition>,
+    pub treasure_positions: Vec<SpawnPosition>,
     pub external_tile: TileInfo,
 }
 

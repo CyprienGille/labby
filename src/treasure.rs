@@ -52,6 +52,13 @@ fn spawn_all_treasures(
         .map(|s| s.replace("assets/", ""))
         .collect::<Vec<_>>();
 
+    let num_set_pos: i32 = selected_board
+        .board
+        .treasure_positions
+        .len()
+        .try_into()
+        .unwrap();
+
     let mut all_player_spawns: Vec<GridPosition> = vec![];
     let mut used_pos: Vec<GridPosition> = vec![];
 
@@ -63,23 +70,44 @@ fn spawn_all_treasures(
     }
 
     for id in 0..(game_settings.num_players * game_settings.treasures_to_get) {
-        let mut x_pos = get_random_pos_on_axis(GridAxis::X, &selected_board);
-        let mut y_pos = get_random_pos_on_axis(GridAxis::Y, &selected_board);
-        while all_player_spawns.contains(&GridPosition { x_pos, y_pos })
-            || used_pos.contains(&GridPosition { x_pos, y_pos })
-        {
-            x_pos = get_random_pos_on_axis(GridAxis::X, &selected_board);
-            y_pos = get_random_pos_on_axis(GridAxis::Y, &selected_board);
+        let mut current_spawn_pos = SpawnPosition::Any;
+
+        if id < num_set_pos {
+            current_spawn_pos = selected_board.board.treasure_positions[id as usize];
         }
-        spawn_treasure(
-            id,
-            x_pos,
-            y_pos,
-            &mut commands,
-            &asset_server,
-            &sprite_paths,
-        );
-        used_pos.push(GridPosition { x_pos, y_pos });
+
+        match current_spawn_pos {
+            SpawnPosition::Position(GridPosition { x_pos, y_pos }) => {
+                spawn_treasure(
+                    id,
+                    x_pos,
+                    y_pos,
+                    &mut commands,
+                    &asset_server,
+                    &sprite_paths,
+                );
+                used_pos.push(GridPosition { x_pos, y_pos });
+            }
+            SpawnPosition::Any => {
+                let mut x_pos = get_random_pos_on_axis(GridAxis::X, &selected_board);
+                let mut y_pos = get_random_pos_on_axis(GridAxis::Y, &selected_board);
+                while all_player_spawns.contains(&GridPosition { x_pos, y_pos })
+                    || used_pos.contains(&GridPosition { x_pos, y_pos })
+                {
+                    x_pos = get_random_pos_on_axis(GridAxis::X, &selected_board);
+                    y_pos = get_random_pos_on_axis(GridAxis::Y, &selected_board);
+                }
+                spawn_treasure(
+                    id,
+                    x_pos,
+                    y_pos,
+                    &mut commands,
+                    &asset_server,
+                    &sprite_paths,
+                );
+                used_pos.push(GridPosition { x_pos, y_pos });
+            }
+        }
     }
 }
 
