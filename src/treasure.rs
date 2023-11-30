@@ -138,7 +138,19 @@ fn spawn_treasure(
     });
 }
 
-fn init_treasure_lists(treasure_lists: ResMut<TreasureLists>, game_settings: Res<GameSettings>) {}
+fn init_treasure_lists(
+    mut treasure_lists: ResMut<TreasureLists>,
+    game_settings: Res<GameSettings>,
+) {
+    for player_id in 0..game_settings.num_players {
+        let start_treasure_id = player_id * game_settings.treasures_to_get;
+        treasure_lists.lists.insert(
+            player_id,
+            (start_treasure_id..start_treasure_id + game_settings.treasures_to_get).collect(),
+        );
+    }
+    println!("{:?}", treasure_lists);
+}
 
 fn move_treasure_with_ext_tile(
     tiles_query: Query<&GridPosition, With<TileType>>,
