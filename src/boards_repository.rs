@@ -120,6 +120,12 @@ pub static BOARD_0: Lazy<Board> = Lazy::new(|| Board {
         SpawnPosition::Position(GridPosition { x_pos: 4, y_pos: 4 }),
         SpawnPosition::Position(GridPosition { x_pos: 4, y_pos: 0 }),
     ],
+    treasure_positions: vec![
+        SpawnPosition::Any,
+        SpawnPosition::Any,
+        SpawnPosition::Any,
+        SpawnPosition::Any,
+    ],
     external_tile: TileInfo {
         tile_type: TileType::Corner,
         angle: 0.0,
@@ -328,6 +334,12 @@ pub static BOARD_CLASSIC: Lazy<Board> = Lazy::new(|| Board {
         SpawnPosition::Position(GridPosition { x_pos: 0, y_pos: 6 }),
         SpawnPosition::Position(GridPosition { x_pos: 6, y_pos: 6 }),
         SpawnPosition::Position(GridPosition { x_pos: 6, y_pos: 0 }),
+    ],
+    treasure_positions: vec![
+        SpawnPosition::Any,
+        SpawnPosition::Any,
+        SpawnPosition::Any,
+        SpawnPosition::Any,
     ],
     external_tile: TileInfo {
         tile_type: TileType::Corner,
