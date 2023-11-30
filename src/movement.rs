@@ -27,6 +27,7 @@ pub enum Direction {
 
 #[derive(Resource, Debug, Default)]
 struct IllegalPushPositions {
+    fresh_pos_on_top: bool,
     positions: Vec<GridPosition>,
 }
 
@@ -328,9 +329,13 @@ fn trigger_push(
         if keys.just_pressed(KeyCode::Return) && !keys.pressed(KeyCode::S) {
             push_tile(&mut entities_query, external_pos, max_x, max_y);
             game_state.tile_push_phase = false;
+            if illegal.fresh_pos_on_top {
+                illegal.positions.pop();
+            }
             illegal
                 .positions
                 .push(get_opposite_pos(&external_pos, max_x, max_y));
+            illegal.fresh_pos_on_top = true;
             illegal.positions.retain(|x| *x != external_pos);
         }
         if keys.just_pressed(KeyCode::S) {
