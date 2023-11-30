@@ -149,7 +149,6 @@ fn init_treasure_lists(
             (start_treasure_id..start_treasure_id + game_settings.treasures_to_get).collect(),
         );
     }
-    println!("{:?}", treasure_lists);
 }
 
 fn move_treasure_with_ext_tile(
