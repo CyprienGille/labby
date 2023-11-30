@@ -56,7 +56,7 @@ pub fn spawn_tile(
             TileType::Straight,
             TileType::T,
             TileType::OneWay,
-            TileType::Block,
+            // TileType::Block,
             TileType::FourWay,
         ]
         .choose(&mut thread_rng())

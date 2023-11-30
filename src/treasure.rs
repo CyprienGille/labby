@@ -4,7 +4,8 @@ use std::fs::read_dir;
 use crate::{
     actors::{get_random_pos_on_axis, GridAxis, SpawnPosition},
     board_selector::SelectedBoard,
-    tile::TILE_SIZE,
+    movement::{get_max_coords, pos_is_external},
+    tile::{TileType, TILE_SIZE},
     GameSettings, GridPosition,
 };
 
@@ -26,7 +27,8 @@ pub struct TreasurePlugin;
 
 impl Plugin for TreasurePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_all_treasures);
+        app.add_systems(Startup, spawn_all_treasures)
+            .add_systems(Update, move_treasure_with_ext_tile);
     }
 }
 
@@ -95,4 +97,27 @@ fn spawn_treasure(
             ..default()
         },
     });
+}
+
+fn move_treasure_with_ext_tile(
+    tiles_query: Query<&GridPosition, With<TileType>>,
+    mut treasures_query: Query<(&mut GridPosition, &mut Transform, &Treasure), Without<TileType>>,
+    selected_board: Res<SelectedBoard>,
+) {
+    let (max_x, max_y) = get_max_coords(&selected_board);
+
+    for tile_grid_pos in &tiles_query {
+        if pos_is_external(tile_grid_pos, max_x, max_y) {
+            for (mut treasure_grid_pos, mut treasure_transform, _treasure) in &mut treasures_query {
+                if pos_is_external(&treasure_grid_pos, max_x, max_y) {
+                    *treasure_grid_pos = *tile_grid_pos;
+                    treasure_transform.translation = Vec3::new(
+                        tile_grid_pos.x_pos as f32 * TILE_SIZE.x * TREASURE_SCALE.x,
+                        tile_grid_pos.y_pos as f32 * TILE_SIZE.y * TREASURE_SCALE.y,
+                        2.0,
+                    )
+                }
+            }
+        }
+    }
 }

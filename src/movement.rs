@@ -480,7 +480,7 @@ fn warp_player(
     }
 }
 
-fn get_max_coords(selected_board: &Res<SelectedBoard>) -> (i32, i32) {
+pub fn get_max_coords(selected_board: &Res<SelectedBoard>) -> (i32, i32) {
     let max_x: i32 = (selected_board.board.tiles.shape()[1] - 1)
         .try_into()
         .unwrap();
@@ -490,6 +490,6 @@ fn get_max_coords(selected_board: &Res<SelectedBoard>) -> (i32, i32) {
     (max_x, max_y)
 }
 
-fn pos_is_external(pos: &GridPosition, max_x: i32, max_y: i32) -> bool {
+pub fn pos_is_external(pos: &GridPosition, max_x: i32, max_y: i32) -> bool {
     pos.x_pos == -1 || pos.y_pos == -1 || pos.x_pos > max_x || pos.y_pos > max_y
 }
