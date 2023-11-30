@@ -60,15 +60,20 @@ fn spawn_all_players(
     asset_server: Res<AssetServer>,
 ) {
     // The number of specified spawn positions in the selected board's data
-    let num_spawn_pos = selected_board.board.spawn_positions.len();
+    let num_spawn_pos: i32 = selected_board
+        .board
+        .spawn_positions
+        .len()
+        .try_into()
+        .unwrap();
     // The used spawn positions (to avoid superposition)
     let mut used_pos = vec![];
 
     for id in 0..game_settings.num_players {
         let mut current_spawn_pos = SpawnPosition::Any;
-        if id < num_spawn_pos.try_into().unwrap() {
+        if id < num_spawn_pos {
             // Get the next specified spawn position
-            current_spawn_pos = selected_board.board.spawn_positions[id as usize]
+            current_spawn_pos = selected_board.board.spawn_positions[id as usize];
         }
         match current_spawn_pos {
             // If the specified position is set, spawn player there and add it to the used pos list
