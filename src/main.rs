@@ -25,7 +25,7 @@ use treasure::TreasurePlugin;
 const BACKGROUND_COLOR: Color = Color::rgb(0.1, 0.2, 0.1);
 // Number of players
 const NUM_PLAYERS: i32 = 4;
-const TREASURES_TO_GET: i32 = 8;
+const TREASURES_TO_GET: i32 = 7;
 
 #[derive(Resource, Debug)]
 pub struct GameSettings {
