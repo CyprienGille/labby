@@ -9,6 +9,7 @@ mod phases;
 mod player;
 mod tile;
 mod treasure;
+mod ui;
 
 use bevy::prelude::*;
 
