@@ -55,9 +55,9 @@ pub fn spawn_tile(
             TileType::Corner,
             TileType::Straight,
             TileType::T,
-            TileType::OneWay,
+            // TileType::OneWay,
             // TileType::Block,
-            TileType::FourWay,
+            // TileType::FourWay,
         ]
         .choose(&mut thread_rng())
         .unwrap_or(&TileType::Corner);
