@@ -43,8 +43,8 @@ fn zoom_camera(mut camera_query: Query<&mut Transform, With<Camera2d>>, keys: Re
         .expect("More than one Camera2d!");
 
     if keys.just_pressed(KeyCode::PageUp) {
-        camera_transform.scale += Vec3::new(1.0, 1.0, 0.0);
+        camera_transform.scale += Vec3::new(0.2, 0.2, 0.0);
     } else if keys.just_pressed(KeyCode::PageDown) {
-        camera_transform.scale -= Vec3::new(1.0, 1.0, 0.0);
+        camera_transform.scale -= Vec3::new(0.2, 0.2, 0.0);
     }
 }
