@@ -5,7 +5,7 @@ use crate::{
     board_selector::SelectedBoard,
     movement::CanMove,
     tile::{TILE_SCALE, TILE_SIZE},
-    GameSettings, GridPosition,
+    GameSettings, GameState, GridPosition,
 };
 
 const TOKEN_SCALE: Vec3 = Vec3::new(0.4, 0.4, 0.0);
@@ -51,7 +51,7 @@ impl Plugin for PlayerPlugin {
             ..Default::default()
         })
         .add_systems(Startup, spawn_all_players)
-        .add_systems(Update, unstack_players);
+        .add_systems(Update, (unstack_players, display_current_player));
     }
 }
 
@@ -80,7 +80,14 @@ fn spawn_all_players(
         match current_spawn_pos {
             // If the specified position is set, spawn player there and add it to the used pos list
             SpawnPosition::Position(GridPosition { x_pos, y_pos }) => {
-                spawn_player(id, x_pos, y_pos, &mut commands, &asset_server);
+                spawn_player(
+                    id,
+                    x_pos,
+                    y_pos,
+                    &mut commands,
+                    &asset_server,
+                    SPRITES[(id % 4) as usize],
+                );
                 used_pos.push(GridPosition { x_pos, y_pos });
             }
             // If the specified position is not set, pick a random position
@@ -95,7 +102,14 @@ fn spawn_all_players(
                     x_pos = get_random_pos_on_axis(GridAxis::X, &selected_board);
                     y_pos = get_random_pos_on_axis(GridAxis::Y, &selected_board);
                 }
-                spawn_player(id, x_pos, y_pos, &mut commands, &asset_server);
+                spawn_player(
+                    id,
+                    x_pos,
+                    y_pos,
+                    &mut commands,
+                    &asset_server,
+                    SPRITES[(id % 4) as usize],
+                );
                 used_pos.push(GridPosition { x_pos, y_pos });
             }
         }
@@ -108,12 +122,13 @@ fn spawn_player(
     y_pos: i32,
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
+    sprite_path: &str,
 ) {
     commands.spawn(PlayerBundle {
         player: Player { id },
         pos: GridPosition { x_pos, y_pos },
         sprite: SpriteBundle {
-            texture: asset_server.load(SPRITES[(id % 4) as usize]),
+            texture: asset_server.load(sprite_path.to_owned()),
             transform: Transform {
                 translation: Vec3::new(
                     x_pos as f32 * TILE_SIZE.x * TILE_SCALE.x,
@@ -157,6 +172,31 @@ fn unstack_players(
             transform_1.translation.x += WIGGLE_VALUE;
             transform_2.translation.y += WIGGLE_VALUE;
             wiggled_players.pairs.push(pair);
+        }
+    }
+}
+
+fn display_current_player(
+    mut commands: Commands,
+    player_query: Query<(&Player, Entity)>,
+    game_state: Res<GameState>,
+    asset_server: Res<AssetServer>,
+    keys: Res<Input<KeyCode>>,
+) {
+    if keys.just_pressed(KeyCode::Space) {
+        spawn_player(
+            -1,
+            -2,
+            3,
+            &mut commands,
+            &asset_server,
+            SPRITES[(game_state.current_player_id % 4) as usize],
+        );
+    } else if keys.just_released(KeyCode::Space) {
+        for (player, entity) in &player_query {
+            if player.id == -1 {
+                commands.entity(entity).despawn_recursive();
+            }
         }
     }
 }
