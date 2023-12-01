@@ -7,9 +7,10 @@ use crate::{
     actors::{get_random_pos_on_axis, GridAxis, SpawnPosition},
     board_selector::SelectedBoard,
     movement::{get_max_coords, pos_is_external},
+    phases::end_turn,
     player::Player,
     tile::{TileType, TILE_SIZE},
-    GameSettings, GridPosition,
+    GameSettings, GameState, GridPosition,
 };
 
 const TREASURE_SCALE: Vec3 = Vec3::new(0.3, 0.3, 0.0);
@@ -33,9 +34,9 @@ struct TreasureLists {
 }
 
 #[derive(Resource, Debug, Default)]
-struct CollectedLists {
+pub struct CollectedLists {
     // the collected treasure list for each player
-    lists: HashMap<i32, Vec<i32>>,
+    pub lists: HashMap<i32, Vec<i32>>,
 }
 pub struct TreasurePlugin;
 
@@ -45,7 +46,8 @@ impl Plugin for TreasurePlugin {
             .insert_resource(CollectedLists { ..default() })
             .add_systems(Startup, spawn_all_treasures)
             .add_systems(PostStartup, init_treasure_lists)
-            .add_systems(Update, move_treasure_with_ext_tile);
+            .add_systems(Update, move_treasure_with_ext_tile)
+            .add_systems(Update, collect_treasure);
     }
 }
 
@@ -155,6 +157,7 @@ fn spawn_treasure(
 
 fn init_treasure_lists(
     mut treasure_lists: ResMut<TreasureLists>,
+    mut collected_lists: ResMut<CollectedLists>,
     game_settings: Res<GameSettings>,
 ) {
     // Init the to-be-collected treasure lists
@@ -174,6 +177,11 @@ fn init_treasure_lists(
         treasure_lists
             .lists
             .insert(player_id.try_into().unwrap(), chunk.to_vec());
+
+        // Init the collected treasures list for this player
+        collected_lists
+            .lists
+            .insert(player_id.try_into().unwrap(), vec![]);
     }
 }
 
@@ -207,21 +215,44 @@ fn move_treasure_with_ext_tile(
 }
 
 fn collect_treasure(
+    mut commands: Commands,
     player_query: Query<(&Player, &GridPosition)>,
-    treasure_query: Query<(&Treasure, &GridPosition)>,
-    treasure_lists: ResMut<TreasureLists>,
-    collected_lists: ResMut<CollectedLists>,
+    treasure_query: Query<(&Treasure, Entity, &GridPosition)>,
+    mut treasure_lists: ResMut<TreasureLists>,
+    mut collected_lists: ResMut<CollectedLists>,
+    mut game_state: ResMut<GameState>,
 ) {
-    for (player, p_grid_pos) in &player_query {
-        for (treasure, t_grid_pos) in &treasure_query {
-            if p_grid_pos == t_grid_pos
-                && treasure_lists
-                    .lists
-                    .get(&player.id)
-                    .unwrap()
-                    .contains(&treasure.id)
-            {
-                todo!()
+    if !game_state.has_ended {
+        // don't do any collection if game has ended
+        for (player, p_grid_pos) in &player_query {
+            if player.id == game_state.current_player_id {
+                // Cannot collect a treasure outside of a player's turn
+                for (treasure, t_entity, t_grid_pos) in &treasure_query {
+                    if p_grid_pos == t_grid_pos {
+                        let player_treasure_list = treasure_lists.lists.get(&player.id).unwrap();
+                        if player_treasure_list
+                            .iter()
+                            .position(|&id| id == treasure.id)
+                            == Some(player_treasure_list.len() - 1)
+                        {
+                            // if this is the treasure to be collected for this player,
+                            // collect it and stop moving
+                            commands.entity(t_entity).despawn_recursive();
+                            let just_collected = treasure_lists
+                                .lists
+                                .get_mut(&player.id)
+                                .unwrap()
+                                .pop()
+                                .unwrap();
+                            collected_lists
+                                .lists
+                                .get_mut(&player.id)
+                                .unwrap()
+                                .push(just_collected);
+                            end_turn(&mut game_state, &collected_lists);
+                        }
+                    }
+                }
             }
         }
     }
