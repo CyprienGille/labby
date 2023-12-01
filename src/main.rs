@@ -67,13 +67,15 @@ fn main() {
             has_ended: false,
         })
         // User plugins
-        .add_plugins(BoardSelectorPlugin)
-        .add_plugins(Camera2dPlugin)
-        .add_plugins(BoardPlugin)
-        .add_plugins(PlayerPlugin)
-        .add_plugins(MovementPlugin)
-        .add_plugins(GamePhasePlugin)
-        .add_plugins(TreasurePlugin)
+        .add_plugins((
+            BoardSelectorPlugin,
+            Camera2dPlugin,
+            BoardPlugin,
+            PlayerPlugin,
+            MovementPlugin,
+            GamePhasePlugin,
+            TreasurePlugin,
+        ))
         // Debug plugin
         // .add_plugins(DebugPlugin)
         .run();
