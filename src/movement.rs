@@ -47,36 +47,42 @@ impl Plugin for MovementPlugin {
 }
 
 fn move_current_player(
-    mut player_query: Query<(&mut GridPosition, &mut Transform, &Player)>,
+    mut player_query: Query<(&mut GridPosition, &mut Transform, &Player, &CanMove)>,
     tiles_query: Query<(&OpenWays, &GridPosition), Without<Player>>,
     game_state: Res<GameState>,
     keys: Res<Input<KeyCode>>,
     selected_board: Res<SelectedBoard>,
 ) {
-    for (mut grid_pos, mut transform, player) in &mut player_query {
-        if (player.id == game_state.current_player_id) && (!game_state.tile_push_phase) {
-            // If this player can move, it is their turn and they're not pushing tiles
-            if keys.just_pressed(KeyCode::Right)
-                && player_move_ok(*grid_pos, Direction::Right, &tiles_query, &selected_board)
+    if !game_state.has_ended {
+        // Nobody can move if game has ended
+        for (mut grid_pos, mut transform, player, can_move) in &mut player_query {
+            if (player.id == game_state.current_player_id)
+                && (!game_state.tile_push_phase)
+                && (matches!(can_move, &CanMove::Yes))
             {
-                // if right arrow was pressed and this movement is legal, move the player
-                grid_pos.x_pos += 1;
-                transform.translation.x += TILE_SIZE.x * TILE_SCALE.x
-            } else if keys.just_pressed(KeyCode::Left)
-                && player_move_ok(*grid_pos, Direction::Left, &tiles_query, &selected_board)
-            {
-                grid_pos.x_pos -= 1;
-                transform.translation.x -= TILE_SIZE.x * TILE_SCALE.x
-            } else if keys.just_pressed(KeyCode::Up)
-                && player_move_ok(*grid_pos, Direction::Up, &tiles_query, &selected_board)
-            {
-                grid_pos.y_pos += 1;
-                transform.translation.y += TILE_SIZE.y * TILE_SCALE.y
-            } else if keys.just_pressed(KeyCode::Down)
-                && player_move_ok(*grid_pos, Direction::Down, &tiles_query, &selected_board)
-            {
-                grid_pos.y_pos -= 1;
-                transform.translation.y -= TILE_SIZE.y * TILE_SCALE.y
+                // If this player can move, it is their turn and they're not pushing tiles
+                if keys.just_pressed(KeyCode::Right)
+                    && player_move_ok(*grid_pos, Direction::Right, &tiles_query, &selected_board)
+                {
+                    // if right arrow was pressed and this movement is legal, move the player
+                    grid_pos.x_pos += 1;
+                    transform.translation.x += TILE_SIZE.x * TILE_SCALE.x
+                } else if keys.just_pressed(KeyCode::Left)
+                    && player_move_ok(*grid_pos, Direction::Left, &tiles_query, &selected_board)
+                {
+                    grid_pos.x_pos -= 1;
+                    transform.translation.x -= TILE_SIZE.x * TILE_SCALE.x
+                } else if keys.just_pressed(KeyCode::Up)
+                    && player_move_ok(*grid_pos, Direction::Up, &tiles_query, &selected_board)
+                {
+                    grid_pos.y_pos += 1;
+                    transform.translation.y += TILE_SIZE.y * TILE_SCALE.y
+                } else if keys.just_pressed(KeyCode::Down)
+                    && player_move_ok(*grid_pos, Direction::Down, &tiles_query, &selected_board)
+                {
+                    grid_pos.y_pos -= 1;
+                    transform.translation.y -= TILE_SIZE.y * TILE_SCALE.y
+                }
             }
         }
     }
@@ -150,7 +156,7 @@ fn move_current_tile(
     keys: Res<Input<KeyCode>>,
 ) {
     let (max_x, max_y) = get_max_coords(&selected_board);
-    if game_state.tile_push_phase {
+    if game_state.tile_push_phase && !game_state.has_ended {
         for (mut grid_pos, mut transform, mut open_ways) in &mut tiles_query {
             if pos_is_external(&grid_pos, max_x, max_y) {
                 // This is the external tile
@@ -325,7 +331,10 @@ fn trigger_push(
         }
     }
 
-    if game_state.tile_push_phase && !illegal.positions.contains(&external_pos) {
+    if game_state.tile_push_phase
+        && !illegal.positions.contains(&external_pos)
+        && !game_state.has_ended
+    {
         if keys.just_pressed(KeyCode::Return) && !keys.pressed(KeyCode::S) {
             push_tile(&mut entities_query, external_pos, max_x, max_y);
             game_state.tile_push_phase = false;
