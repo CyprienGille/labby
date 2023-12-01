@@ -1,9 +1,12 @@
 # Labby (WIP)
 
+![Rust logo](rust-logo.png)
+![Bevy logo](bevy-logo.png)
+
 Little recreation of the Labyrinth board game using **Rust** and the *Bevy* game engine.
 
 ## TODO
-- v0.5.0 - QOL
+- v0.5.0 - QOL (controls hints)
 
 ## Done
 - v0.1.0 - Tiles
