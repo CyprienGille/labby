@@ -4,11 +4,11 @@ use crate::{
     actors::{get_random_pos_on_axis, GridAxis, SpawnPosition},
     board_selector::SelectedBoard,
     movement::CanMove,
-    tile::TILE_SIZE,
+    tile::{TILE_SCALE, TILE_SIZE},
     GameSettings, GridPosition,
 };
 
-const TOKEN_SCALE: Vec3 = Vec3::new(0.3, 0.3, 0.0);
+const TOKEN_SCALE: Vec3 = Vec3::new(0.4, 0.4, 0.0);
 // const TOKEN_SIZE: Vec3 = Vec3::new(280.0, 280.0, 0.0);
 const WIGGLE_VALUE: f32 = 20.0;
 
@@ -116,8 +116,8 @@ fn spawn_player(
             texture: asset_server.load(SPRITES[(id % 4) as usize]),
             transform: Transform {
                 translation: Vec3::new(
-                    x_pos as f32 * TILE_SIZE.x * TOKEN_SCALE.x,
-                    y_pos as f32 * TILE_SIZE.y * TOKEN_SCALE.y,
+                    x_pos as f32 * TILE_SIZE.x * TILE_SCALE.x,
+                    y_pos as f32 * TILE_SIZE.y * TILE_SCALE.y,
                     1.0,
                 ),
                 scale: TOKEN_SCALE,
