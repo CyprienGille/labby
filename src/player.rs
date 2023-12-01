@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::{
     actors::{get_random_pos_on_axis, GridAxis, SpawnPosition},
     board_selector::SelectedBoard,
+    movement::CanMove,
     tile::TILE_SIZE,
     GameSettings, GridPosition,
 };
@@ -39,6 +40,7 @@ struct PlayerBundle {
     player: Player,
     pos: GridPosition,
     sprite: SpriteBundle,
+    can_move: CanMove,
 }
 
 pub struct PlayerPlugin;
@@ -123,6 +125,7 @@ fn spawn_player(
             },
             ..default()
         },
+        can_move: CanMove::No,
     });
 }
 
