@@ -1,4 +1,6 @@
 use bevy::{prelude::*, utils::HashMap};
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use std::fs::read_dir;
 
 use crate::{
@@ -142,12 +144,18 @@ fn init_treasure_lists(
     mut treasure_lists: ResMut<TreasureLists>,
     game_settings: Res<GameSettings>,
 ) {
-    for player_id in 0..game_settings.num_players {
-        let start_treasure_id = player_id * game_settings.treasures_to_get;
-        treasure_lists.lists.insert(
-            player_id,
-            (start_treasure_id..start_treasure_id + game_settings.treasures_to_get).collect(),
-        );
+    let mut rng = thread_rng();
+    let mut all_treasure_ids =
+        (0..game_settings.num_players * game_settings.treasures_to_get).collect::<Vec<i32>>();
+    all_treasure_ids.shuffle(&mut rng);
+
+    for (player_id, chunk) in all_treasure_ids
+        .chunks(game_settings.treasures_to_get.try_into().unwrap())
+        .enumerate()
+    {
+        treasure_lists
+            .lists
+            .insert(player_id.try_into().unwrap(), chunk.to_vec());
     }
 }
 
