@@ -25,7 +25,7 @@ use treasure::TreasurePlugin;
 const BACKGROUND_COLOR: Color = Color::rgb(0.1, 0.2, 0.1);
 // Number of players
 const NUM_PLAYERS: i32 = 4;
-const TREASURES_TO_GET: i32 = 7;
+const TREASURES_TO_GET: i32 = 6;
 
 #[derive(Resource, Debug)]
 pub struct GameSettings {
@@ -40,6 +40,8 @@ pub struct GameState {
     // whether we are in the board movement phase
     // (or the player movement phase, if false)
     tile_push_phase: bool,
+    // whether the game has ended
+    has_ended: bool,
 }
 
 // The position of a player, a tile or a treasure in tile units
@@ -62,6 +64,7 @@ fn main() {
         .insert_resource(GameState {
             current_player_id: 0,
             tile_push_phase: true,
+            has_ended: false,
         })
         // User plugins
         .add_plugins(BoardSelectorPlugin)
