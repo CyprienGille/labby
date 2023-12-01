@@ -9,11 +9,12 @@ use crate::{
     movement::{get_max_coords, pos_is_external},
     phases::end_turn,
     player::Player,
-    tile::{TileType, TILE_SIZE},
+    tile::{TileType, TILE_SCALE, TILE_SIZE},
     GameSettings, GameState, GridPosition,
 };
 
-const TREASURE_SCALE: Vec3 = Vec3::new(0.3, 0.3, 0.0);
+const TREASURE_SCALE: Vec3 = Vec3::new(0.28, 0.28, 0.0);
+const BIG_TREASURE_SCALE: Vec3 = Vec3::new(0.9, 0.9, 0.0);
 
 #[derive(Debug, Component)]
 struct Treasure {
@@ -38,16 +39,29 @@ pub struct CollectedLists {
     // the collected treasure list for each player
     pub lists: HashMap<i32, Vec<i32>>,
 }
+
+#[derive(Default, Debug, Resource)]
+struct TreasureSprites {
+    list: Vec<String>,
+}
+
 pub struct TreasurePlugin;
 
 impl Plugin for TreasurePlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TreasureLists { ..default() })
             .insert_resource(CollectedLists { ..default() })
+            .insert_resource(TreasureSprites { ..default() })
             .add_systems(Startup, spawn_all_treasures)
             .add_systems(PostStartup, init_treasure_lists)
-            .add_systems(Update, move_treasure_with_ext_tile)
-            .add_systems(Update, collect_treasure);
+            .add_systems(
+                Update,
+                (
+                    move_treasure_with_ext_tile,
+                    collect_treasure,
+                    display_current_treasure,
+                ),
+            );
     }
 }
 
@@ -55,6 +69,7 @@ fn spawn_all_treasures(
     mut commands: Commands,
     game_settings: Res<GameSettings>,
     selected_board: Res<SelectedBoard>,
+    mut treasure_sprites: ResMut<TreasureSprites>,
     asset_server: Res<AssetServer>,
 ) {
     // all of the available treasure sprites
@@ -64,6 +79,8 @@ fn spawn_all_treasures(
         .map(|e| e.path().to_string_lossy().into_owned())
         .map(|s| s.replace("assets/", ""))
         .collect::<Vec<_>>();
+
+    treasure_sprites.list = sprite_paths.clone();
 
     // the number of set treasure positions in the selected board
     let num_set_pos: i32 = selected_board
@@ -100,7 +117,8 @@ fn spawn_all_treasures(
                     y_pos,
                     &mut commands,
                     &asset_server,
-                    &sprite_paths,
+                    &sprite_paths[id as usize % sprite_paths.len()],
+                    false,
                 );
                 used_pos.push(GridPosition { x_pos, y_pos });
             }
@@ -120,7 +138,8 @@ fn spawn_all_treasures(
                     y_pos,
                     &mut commands,
                     &asset_server,
-                    &sprite_paths,
+                    &sprite_paths[id as usize % sprite_paths.len()],
+                    false,
                 );
                 used_pos.push(GridPosition { x_pos, y_pos });
             }
@@ -134,7 +153,8 @@ fn spawn_treasure(
     y_pos: i32,
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
-    sprite_paths: &Vec<String>,
+    sprite_path: &String,
+    use_big_scale: bool,
 ) {
     commands.spawn(TreasureBundle {
         treasure: Treasure { id },
@@ -142,14 +162,18 @@ fn spawn_treasure(
         sprite: SpriteBundle {
             transform: Transform {
                 translation: Vec3::new(
-                    x_pos as f32 * TILE_SIZE.x * TREASURE_SCALE.x,
-                    y_pos as f32 * TILE_SIZE.y * TREASURE_SCALE.y,
+                    x_pos as f32 * TILE_SIZE.x * TILE_SCALE.x,
+                    y_pos as f32 * TILE_SIZE.y * TILE_SCALE.y,
                     2.0,
                 ),
-                scale: TREASURE_SCALE,
+                scale: if use_big_scale {
+                    BIG_TREASURE_SCALE
+                } else {
+                    TREASURE_SCALE
+                },
                 ..default()
             },
-            texture: asset_server.load(&sprite_paths[id as usize % sprite_paths.len()]),
+            texture: asset_server.load(sprite_path),
             ..default()
         },
     });
@@ -204,8 +228,8 @@ fn move_treasure_with_ext_tile(
                     *treasure_grid_pos = *tile_grid_pos;
                     // Make it follow the external tile
                     treasure_transform.translation = Vec3::new(
-                        tile_grid_pos.x_pos as f32 * TILE_SIZE.x * TREASURE_SCALE.x,
-                        tile_grid_pos.y_pos as f32 * TILE_SIZE.y * TREASURE_SCALE.y,
+                        tile_grid_pos.x_pos as f32 * TILE_SIZE.x * TILE_SCALE.x,
+                        tile_grid_pos.y_pos as f32 * TILE_SIZE.y * TILE_SCALE.y,
                         2.0,
                     )
                 }
@@ -253,6 +277,40 @@ fn collect_treasure(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+fn display_current_treasure(
+    mut commands: Commands,
+    treasure_query: Query<(&Treasure, Entity)>,
+    treasure_lists: Res<TreasureLists>,
+    game_state: Res<GameState>,
+    asset_server: Res<AssetServer>,
+    keys: Res<Input<KeyCode>>,
+    sprite_paths: Res<TreasureSprites>,
+) {
+    if keys.just_pressed(KeyCode::Space) {
+        let id = *treasure_lists
+            .lists
+            .get(&game_state.current_player_id)
+            .unwrap()
+            .last()
+            .unwrap();
+        spawn_treasure(
+            -1,
+            -2,
+            2,
+            &mut commands,
+            &asset_server,
+            &sprite_paths.list[id as usize],
+            true,
+        );
+    } else if keys.just_released(KeyCode::Space) {
+        for (treasure, entity) in &treasure_query {
+            if treasure.id == -1 {
+                commands.entity(entity).despawn_recursive();
             }
         }
     }
