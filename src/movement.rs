@@ -39,10 +39,15 @@ impl Plugin for MovementPlugin {
             ..Default::default()
         })
         .add_systems(PostStartup, compute_illegal_pushes)
-        .add_systems(Update, move_current_player)
-        .add_systems(Update, move_current_tile)
-        .add_systems(Update, trigger_push)
-        .add_systems(Update, warp_player);
+        .add_systems(
+            Update,
+            (
+                move_current_player,
+                move_current_tile,
+                trigger_push,
+                warp_player,
+            ),
+        );
     }
 }
 
