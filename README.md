@@ -1,4 +1,4 @@
-# Labby (WIP)
+# Labby
 
 ![Rust logo](rust-logo.png)
 ![Bevy logo](bevy-logo.png)
