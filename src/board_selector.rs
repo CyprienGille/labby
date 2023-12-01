@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 use once_cell::sync::Lazy;
 
-use crate::{board::Board, boards_repository::BOARD_CLASSIC};
+use crate::{
+    board::Board,
+    boards_repository::{BOARD_0, BOARD_CLASSIC},
+};
 
 #[derive(Resource)]
 pub struct SelectedBoard {
