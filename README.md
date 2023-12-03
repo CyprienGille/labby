@@ -6,8 +6,6 @@
 Little recreation of the Labyrinth board game using **Rust** and the *Bevy* game engine.
 
 ## TODO
-- v0.5.0 - QOL (controls hints)
-- v1.0.0 - Release!
 
 ## Done
 - v0.1.0 - Tiles
@@ -19,3 +17,5 @@ Little recreation of the Labyrinth board game using **Rust** and the *Bevy* game
 - v0.2.9 - Documentation Break
 - v0.3.0 - Board movement
 - v0.4.0 - Treasure
+- v0.5.0 - QOL (controls hints)
+- v1.0.0 - Release!
