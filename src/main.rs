@@ -20,6 +20,7 @@ use movement::MovementPlugin;
 use phases::GamePhasePlugin;
 use player::PlayerPlugin;
 use treasure::TreasurePlugin;
+use ui::UIPlugin;
 // use debug::DebugPlugin;
 
 // Background color outside of the board
@@ -76,6 +77,7 @@ fn main() {
             MovementPlugin,
             GamePhasePlugin,
             TreasurePlugin,
+            UIPlugin,
         ))
         // Debug plugin
         // .add_plugins(DebugPlugin)
