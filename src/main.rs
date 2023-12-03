@@ -1,3 +1,6 @@
+// if not in debug builds, tell windows to not pop up a terminal too
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 mod actors;
 mod board;
 mod board_selector;
@@ -55,10 +58,10 @@ pub struct GridPosition {
 
 fn main() {
     App::new()
-        //bevy Built-ins
+        //Built-ins
         .insert_resource(ClearColor(BACKGROUND_COLOR))
         .add_plugins(DefaultPlugins)
-        // User Resources
+        // Custom Resources
         .insert_resource(GameSettings {
             num_players: NUM_PLAYERS,
             treasures_to_get: TREASURES_TO_GET,
@@ -68,7 +71,7 @@ fn main() {
             tile_push_phase: true,
             has_ended: false,
         })
-        // User plugins
+        // Custom plugins
         .add_plugins((
             BoardSelectorPlugin,
             Camera2dPlugin,
