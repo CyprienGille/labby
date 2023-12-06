@@ -1,9 +1,10 @@
 use bevy::prelude::*;
 
+use crate::phases::GamePhase;
+
 const FONT_SIZE: f32 = 35.0;
 
 #[derive(Debug)]
-
 enum Language {
     French,
     English,
@@ -14,6 +15,9 @@ struct ChosenLanguage {
     lang: Language,
 }
 
+#[derive(Component, Debug)]
+pub struct ControlsText;
+
 pub struct UIPlugin;
 
 impl Plugin for UIPlugin {
@@ -21,7 +25,8 @@ impl Plugin for UIPlugin {
         app.insert_resource(ChosenLanguage {
             lang: Language::English,
         })
-        .add_systems(Startup, spawn_controls_text);
+        .add_systems(OnEnter(GamePhase::Playing), spawn_controls_text)
+        .add_systems(OnExit(GamePhase::Playing), cleanup_controls_text);
     }
 }
 
@@ -41,16 +46,22 @@ fn spawn_controls_text(mut commands: Commands, language: Res<ChosenLanguage>) {
 
     match language.lang {
         Language::French => {
-            commands.spawn(TextBundle::from_section(
+            commands.spawn((TextBundle::from_section(
                 "Fleches: Deplacer Tuile/Joueur\nR: Rotation de Tuile\nS: Simuler un deplacement de Tuile\nEntree: Pousser la Tuile\nT: Terminer son tour\nEspace: Afficher le tresor actuel\nPageUp/PageDown: Zoom",
                 text_style,
-            ).with_style(ui_style));
+            ).with_style(ui_style), ControlsText));
         }
         Language::English => {
-            commands.spawn(TextBundle::from_section(
+            commands.spawn((TextBundle::from_section(
                 "Arrows: Move Tile/Player\nR: Rotate Tile\nS: Simulate a push\nReturn: Push Tile\nT: End turn\nSpace: Display current treasure\nPgUp/PgDown: Zoom",
                 text_style,
-            ).with_style(ui_style));
+            ).with_style(ui_style), ControlsText));
         }
+    }
+}
+
+fn cleanup_controls_text(mut commands: Commands, text_query: Query<Entity, With<ControlsText>>) {
+    for entity in &text_query {
+        commands.entity(entity).despawn_recursive();
     }
 }

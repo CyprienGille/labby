@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     board_selector::SelectedBoard,
-    tile::{TILE_SCALE, TILE_SIZE},
+    tile::{TILE_SCALE, TILE_SIZE}, phases::GamePhase,
 };
 
 // Used for z-ordering
@@ -13,7 +13,7 @@ pub struct Camera2dPlugin;
 impl Plugin for Camera2dPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_camera)
-            .add_systems(Update, zoom_camera);
+            .add_systems(Update, zoom_camera.run_if(in_state(GamePhase::Playing)));
     }
 }
 

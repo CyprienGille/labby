@@ -6,7 +6,7 @@ use crate::{
     board_selector::SelectedBoard,
     player::Player,
     tile::{rotate_ways, OpenWays, TileType, TILE_SCALE, TILE_SIZE},
-    GameState, GridPosition,
+    GameState, GridPosition, phases::GamePhase,
 };
 
 #[derive(Debug, Default, Component, Clone, Copy)]
@@ -38,7 +38,7 @@ impl Plugin for MovementPlugin {
         app.insert_resource(IllegalPushPositions {
             ..Default::default()
         })
-        .add_systems(PostStartup, compute_illegal_pushes)
+        .add_systems(OnEnter(GamePhase::Playing), compute_illegal_pushes)
         .add_systems(
             Update,
             (
@@ -46,7 +46,7 @@ impl Plugin for MovementPlugin {
                 move_current_tile,
                 trigger_push,
                 warp_player,
-            ),
+            ).run_if(in_state(GamePhase::Playing)),
         );
     }
 }

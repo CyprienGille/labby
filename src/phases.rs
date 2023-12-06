@@ -5,11 +5,34 @@ use crate::{
     TREASURES_TO_GET,
 };
 
+#[derive(Debug, States, PartialEq, Eq, Hash, Clone, Default)]
+pub enum GamePhase {
+    #[default]
+    MainMenu,
+    Playing,
+}
+
 pub struct GamePhasePlugin;
 
 impl Plugin for GamePhasePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, check_phase);
+        app.add_state::<GamePhase>()
+            .add_systems(Update, start_playing.run_if(in_state(GamePhase::MainMenu)))
+            .add_systems(
+                Update,
+                (check_phase, stop_playing).run_if(in_state(GamePhase::Playing)),
+            );
+    }
+}
+
+fn start_playing(keys: Res<Input<KeyCode>>, mut game_phase: ResMut<NextState<GamePhase>>) {
+    if keys.just_pressed(KeyCode::Return) {
+        game_phase.set(GamePhase::Playing);
+    }
+}
+fn stop_playing(keys: Res<Input<KeyCode>>, mut game_phase: ResMut<NextState<GamePhase>>) {
+    if keys.just_pressed(KeyCode::Escape) {
+        game_phase.set(GamePhase::MainMenu);
     }
 }
 

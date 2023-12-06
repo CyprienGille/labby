@@ -4,6 +4,7 @@ use crate::{
     actors::{get_random_pos_on_axis, GridAxis, SpawnPosition},
     board_selector::SelectedBoard,
     movement::CanMove,
+    phases::GamePhase,
     tile::{TILE_SCALE, TILE_SIZE},
     GameSettings, GameState, GridPosition,
 };
@@ -50,8 +51,12 @@ impl Plugin for PlayerPlugin {
         app.insert_resource(WiggledPlayers {
             ..Default::default()
         })
-        .add_systems(Startup, spawn_all_players)
-        .add_systems(Update, (unstack_players, display_current_player));
+        .add_systems(OnEnter(GamePhase::Playing), spawn_all_players)
+        .add_systems(
+            Update,
+            (unstack_players, display_current_player).run_if(in_state(GamePhase::Playing)),
+        )
+        .add_systems(OnExit(GamePhase::Playing), cleanup_players);
     }
 }
 
@@ -198,5 +203,11 @@ fn display_current_player(
                 commands.entity(entity).despawn_recursive();
             }
         }
+    }
+}
+
+fn cleanup_players(mut commands: Commands, player_query: Query<Entity, With<Player>>) {
+    for entity in &player_query {
+        commands.entity(entity).despawn_recursive();
     }
 }

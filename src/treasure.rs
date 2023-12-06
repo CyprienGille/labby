@@ -7,7 +7,7 @@ use crate::{
     actors::{get_random_pos_on_axis, GridAxis, SpawnPosition},
     board_selector::SelectedBoard,
     movement::{get_max_coords, pos_is_external},
-    phases::end_turn,
+    phases::{end_turn, GamePhase},
     player::Player,
     tile::{TileType, TILE_SCALE, TILE_SIZE},
     GameSettings, GameState, GridPosition,
@@ -52,16 +52,20 @@ impl Plugin for TreasurePlugin {
         app.insert_resource(TreasureLists { ..default() })
             .insert_resource(CollectedLists { ..default() })
             .insert_resource(TreasureSprites { ..default() })
-            .add_systems(Startup, spawn_all_treasures)
-            .add_systems(PostStartup, init_treasure_lists)
+            .add_systems(
+                OnEnter(GamePhase::Playing),
+                (spawn_all_treasures, init_treasure_lists),
+            )
             .add_systems(
                 Update,
                 (
                     move_treasure_with_ext_tile,
                     collect_treasure,
                     display_current_treasure,
-                ),
-            );
+                )
+                    .run_if(in_state(GamePhase::Playing)),
+            )
+            .add_systems(OnExit(GamePhase::Playing), (cleanup_treasures, reset_lists));
     }
 }
 
@@ -314,4 +318,18 @@ fn display_current_treasure(
             }
         }
     }
+}
+
+fn cleanup_treasures(mut commands: Commands, treasure_query: Query<Entity, With<Treasure>>) {
+    for entity in &treasure_query {
+        commands.entity(entity).despawn_recursive();
+    }
+}
+
+fn reset_lists(
+    mut treasure_lists: ResMut<TreasureLists>,
+    mut collected_lists: ResMut<CollectedLists>,
+) {
+    *treasure_lists = TreasureLists { ..default() };
+    *collected_lists = CollectedLists { ..default() };
 }
