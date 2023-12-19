@@ -4,7 +4,7 @@ use ndarray::prelude::*;
 use crate::actors::SpawnPosition;
 use crate::board_selector::SelectedBoard;
 use crate::movement::CanMove;
-use crate::phases::GamePhase;
+use crate::phases::GameState;
 use crate::tile::spawn_tile;
 use crate::tile::TileType;
 
@@ -29,8 +29,8 @@ pub struct BoardPlugin;
 
 impl Plugin for BoardPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GamePhase::Playing), spawn_board)
-            .add_systems(OnExit(GamePhase::Playing), cleanup_board);
+        app.add_systems(OnEnter(GameState::Playing), spawn_board)
+            .add_systems(OnExit(GameState::Playing), cleanup_board);
     }
 }
 

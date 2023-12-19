@@ -4,9 +4,10 @@ use bevy::prelude::*;
 
 use crate::{
     board_selector::SelectedBoard,
+    phases::GameState,
     player::Player,
     tile::{rotate_ways, OpenWays, TileType, TILE_SCALE, TILE_SIZE},
-    GameState, GridPosition, phases::GamePhase,
+    GamePhase, GridPosition,
 };
 
 #[derive(Debug, Default, Component, Clone, Copy)]
@@ -38,7 +39,7 @@ impl Plugin for MovementPlugin {
         app.insert_resource(IllegalPushPositions {
             ..Default::default()
         })
-        .add_systems(OnEnter(GamePhase::Playing), compute_illegal_pushes)
+        .add_systems(OnEnter(GameState::Playing), compute_illegal_pushes)
         .add_systems(
             Update,
             (
@@ -46,7 +47,8 @@ impl Plugin for MovementPlugin {
                 move_current_tile,
                 trigger_push,
                 warp_player,
-            ).run_if(in_state(GamePhase::Playing)),
+            )
+                .run_if(in_state(GameState::Playing)),
         );
     }
 }
@@ -54,7 +56,7 @@ impl Plugin for MovementPlugin {
 fn move_current_player(
     mut player_query: Query<(&mut GridPosition, &mut Transform, &Player, &CanMove)>,
     tiles_query: Query<(&OpenWays, &GridPosition), Without<Player>>,
-    game_state: Res<GameState>,
+    game_state: Res<GamePhase>,
     keys: Res<Input<KeyCode>>,
     selected_board: Res<SelectedBoard>,
 ) {
@@ -156,7 +158,7 @@ fn player_move_ok(
 
 fn move_current_tile(
     mut tiles_query: Query<(&mut GridPosition, &mut Transform, &mut OpenWays), With<TileType>>,
-    game_state: Res<GameState>,
+    game_state: Res<GamePhase>,
     selected_board: Res<SelectedBoard>,
     keys: Res<Input<KeyCode>>,
 ) {
@@ -321,7 +323,7 @@ fn trigger_push(
     mut entities_query: Query<(&mut Transform, &mut GridPosition)>,
     selected_board: Res<SelectedBoard>,
     keys: Res<Input<KeyCode>>,
-    mut game_state: ResMut<GameState>,
+    mut game_state: ResMut<GamePhase>,
     mut illegal: ResMut<IllegalPushPositions>,
 ) {
     let (max_x, max_y) = get_max_coords(&selected_board);

@@ -4,9 +4,9 @@ use crate::{
     actors::{get_random_pos_on_axis, GridAxis, SpawnPosition},
     board_selector::SelectedBoard,
     movement::CanMove,
-    phases::GamePhase,
+    phases::GameState,
     tile::{TILE_SCALE, TILE_SIZE},
-    GameSettings, GameState, GridPosition,
+    GamePhase, GameSettings, GridPosition,
 };
 
 const TOKEN_SCALE: Vec3 = Vec3::new(0.4, 0.4, 0.0);
@@ -51,12 +51,12 @@ impl Plugin for PlayerPlugin {
         app.insert_resource(WiggledPlayers {
             ..Default::default()
         })
-        .add_systems(OnEnter(GamePhase::Playing), spawn_all_players)
+        .add_systems(OnEnter(GameState::Playing), spawn_all_players)
         .add_systems(
             Update,
-            (unstack_players, display_current_player).run_if(in_state(GamePhase::Playing)),
+            (unstack_players, display_current_player).run_if(in_state(GameState::Playing)),
         )
-        .add_systems(OnExit(GamePhase::Playing), cleanup_players);
+        .add_systems(OnExit(GameState::Playing), cleanup_players);
     }
 }
 
@@ -184,7 +184,7 @@ fn unstack_players(
 fn display_current_player(
     mut commands: Commands,
     player_query: Query<(&Player, Entity)>,
-    game_state: Res<GameState>,
+    game_state: Res<GamePhase>,
     asset_server: Res<AssetServer>,
     keys: Res<Input<KeyCode>>,
 ) {

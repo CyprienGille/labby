@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::phases::GamePhase;
+use crate::phases::GameState;
 
 const FONT_SIZE: f32 = 35.0;
 
@@ -23,10 +23,10 @@ pub struct UIPlugin;
 impl Plugin for UIPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ChosenLanguage {
-            lang: Language::English,
+            lang: Language::French,
         })
-        .add_systems(OnEnter(GamePhase::Playing), spawn_controls_text)
-        .add_systems(OnExit(GamePhase::Playing), cleanup_controls_text);
+        .add_systems(OnEnter(GameState::Playing), spawn_controls_text)
+        .add_systems(OnExit(GameState::Playing), cleanup_controls_text);
     }
 }
 
@@ -39,7 +39,7 @@ fn spawn_controls_text(mut commands: Commands, language: Res<ChosenLanguage>) {
 
     let ui_style = Style {
         position_type: PositionType::Absolute,
-        right: Val::VMax(0.5),
+        left: Val::VMax(0.5),
         top: Val::VMin(1.0),
         ..default()
     };

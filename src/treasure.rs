@@ -7,10 +7,10 @@ use crate::{
     actors::{get_random_pos_on_axis, GridAxis, SpawnPosition},
     board_selector::SelectedBoard,
     movement::{get_max_coords, pos_is_external},
-    phases::{end_turn, GamePhase},
+    phases::{end_turn, GameState},
     player::Player,
     tile::{TileType, TILE_SCALE, TILE_SIZE},
-    GameSettings, GameState, GridPosition,
+    GamePhase, GameSettings, GridPosition,
 };
 
 const TREASURE_SCALE: Vec3 = Vec3::new(0.28, 0.28, 0.0);
@@ -53,7 +53,7 @@ impl Plugin for TreasurePlugin {
             .insert_resource(CollectedLists { ..default() })
             .insert_resource(TreasureSprites { ..default() })
             .add_systems(
-                OnEnter(GamePhase::Playing),
+                OnEnter(GameState::Playing),
                 (spawn_all_treasures, init_treasure_lists),
             )
             .add_systems(
@@ -63,9 +63,9 @@ impl Plugin for TreasurePlugin {
                     collect_treasure,
                     display_current_treasure,
                 )
-                    .run_if(in_state(GamePhase::Playing)),
+                    .run_if(in_state(GameState::Playing)),
             )
-            .add_systems(OnExit(GamePhase::Playing), (cleanup_treasures, reset_lists));
+            .add_systems(OnExit(GameState::Playing), (cleanup_treasures, reset_lists));
     }
 }
 
@@ -248,7 +248,7 @@ fn collect_treasure(
     treasure_query: Query<(&Treasure, Entity, &GridPosition)>,
     mut treasure_lists: ResMut<TreasureLists>,
     mut collected_lists: ResMut<CollectedLists>,
-    mut game_state: ResMut<GameState>,
+    mut game_state: ResMut<GamePhase>,
 ) {
     if !game_state.has_ended {
         // don't do any collection if game has ended
@@ -290,7 +290,7 @@ fn display_current_treasure(
     mut commands: Commands,
     treasure_query: Query<(&Treasure, Entity)>,
     treasure_lists: Res<TreasureLists>,
-    game_state: Res<GameState>,
+    game_state: Res<GamePhase>,
     asset_server: Res<AssetServer>,
     keys: Res<Input<KeyCode>>,
     sprite_paths: Res<TreasureSprites>,

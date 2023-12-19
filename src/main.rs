@@ -39,7 +39,7 @@ pub struct GameSettings {
 }
 
 #[derive(Resource, Debug)]
-pub struct GameState {
+pub struct GamePhase {
     // The id of the player whose turn it is
     current_player_id: i32,
     // whether we are in the board movement phase
@@ -66,19 +66,19 @@ fn main() {
             num_players: NUM_PLAYERS,
             treasures_to_get: TREASURES_TO_GET,
         })
-        .insert_resource(GameState {
+        .insert_resource(GamePhase {
             current_player_id: 0,
             tile_push_phase: true,
             has_ended: false,
         })
         // Custom plugins
         .add_plugins((
+            BoardPlugin,
             BoardSelectorPlugin,
             Camera2dPlugin,
-            BoardPlugin,
-            PlayerPlugin,
-            MovementPlugin,
             GamePhasePlugin,
+            MovementPlugin,
+            PlayerPlugin,
             TreasurePlugin,
             UIPlugin,
         ))
