@@ -14,7 +14,7 @@ mod tile;
 mod treasure;
 mod ui;
 
-use bevy::prelude::*;
+use bevy::{asset::AssetMetaCheck, prelude::*};
 
 use board::BoardPlugin;
 use board_selector::BoardSelectorPlugin;
@@ -60,7 +60,18 @@ fn main() {
     App::new()
         //Built-ins
         .insert_resource(ClearColor(BACKGROUND_COLOR))
-        .add_plugins(DefaultPlugins)
+        .insert_resource(AssetMetaCheck::Never)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Complexcity".to_string(),
+                canvas: Some("#bevy".to_owned()),
+                fit_canvas_to_parent: true,
+                // Let web shortcuts work (like f5)
+                prevent_default_event_handling: false,
+                ..default()
+            }),
+            ..default()
+        }))
         // Custom Resources
         .insert_resource(GameSettings {
             num_players: NUM_PLAYERS,

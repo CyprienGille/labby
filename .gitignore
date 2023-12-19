@@ -2,3 +2,4 @@ target/
 dg_maps/
 src/old_main.rs
 .vscode/
+dist/

@@ -1,0 +1,6 @@
+[build]
+target = "index.html"
+release = true
+dist = "dist/itch_io"
+filehash = true
+public_url = "./"
