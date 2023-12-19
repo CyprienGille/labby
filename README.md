@@ -6,6 +6,9 @@
 Little recreation of the Labyrinth board game using **Rust** and the *Bevy* game engine.
 
 ## TODO
+- Better background
+- Settings in-game
+
 
 ## Done
 - v0.1.0 - Tiles
