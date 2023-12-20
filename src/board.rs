@@ -47,7 +47,7 @@ fn spawn_board(
         for x_pos in 0..num_tiles_x {
             let current_tile = board.tiles[[y_pos, x_pos]];
             // we need to invert the y index
-            // To spawn tiles top-down from the selected board array
+            // to spawn tiles top-down from the selected board array
             // Note: This panics if the board is immense
             let int_y_pos: i32 = (board.tiles.shape()[0] - y_pos - 1).try_into().unwrap();
             let int_x_pos: i32 = x_pos.try_into().unwrap();
