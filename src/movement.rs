@@ -435,41 +435,41 @@ fn get_opposite_pos(pos: &GridPosition, max_x: i32, max_y: i32) -> GridPosition 
 }
 
 fn compute_illegal_pushes(
-    tiles_query: Query<(&GridPosition, &CanMove), With<TileType>>,
     mut illegal: ResMut<IllegalPushPositions>,
     selected_board: Res<SelectedBoard>,
 ) {
     let (max_x, max_y) = get_max_coords(&selected_board);
 
-    for (grid_pos, can_move) in &tiles_query {
-        if matches!(can_move, CanMove::No) {
-            let new_illegal_left = GridPosition {
-                x_pos: -1,
-                y_pos: grid_pos.y_pos,
-            };
-            let new_illegal_bottom = GridPosition {
-                x_pos: grid_pos.x_pos,
-                y_pos: -1,
-            };
-            let new_illegal_right = GridPosition {
-                x_pos: max_x + 1,
-                y_pos: grid_pos.y_pos,
-            };
-            let new_illegal_top = GridPosition {
-                x_pos: grid_pos.x_pos,
-                y_pos: max_y + 1,
-            };
-            if !illegal.positions.contains(&new_illegal_left) {
-                illegal.positions.push(new_illegal_left);
-            }
-            if !illegal.positions.contains(&new_illegal_bottom) {
-                illegal.positions.push(new_illegal_bottom);
-            }
-            if !illegal.positions.contains(&new_illegal_right) {
-                illegal.positions.push(new_illegal_right);
-            }
-            if !illegal.positions.contains(&new_illegal_top) {
-                illegal.positions.push(new_illegal_top);
+    for y_pos in 0..=max_y {
+        for x_pos in 0..=max_x {
+            let current_tile = selected_board.board.tiles[[y_pos as usize, x_pos as usize]];
+
+            if matches!(current_tile.can_move, CanMove::No) {
+                let new_illegal_left = GridPosition {
+                    x_pos: -1,
+                    y_pos: max_y - y_pos,
+                };
+                let new_illegal_bottom = GridPosition { x_pos, y_pos: -1 };
+                let new_illegal_right = GridPosition {
+                    x_pos: max_x + 1,
+                    y_pos: max_y - y_pos,
+                };
+                let new_illegal_top = GridPosition {
+                    x_pos,
+                    y_pos: max_y + 1,
+                };
+                if !illegal.positions.contains(&new_illegal_left) {
+                    illegal.positions.push(new_illegal_left);
+                }
+                if !illegal.positions.contains(&new_illegal_bottom) {
+                    illegal.positions.push(new_illegal_bottom);
+                }
+                if !illegal.positions.contains(&new_illegal_right) {
+                    illegal.positions.push(new_illegal_right);
+                }
+                if !illegal.positions.contains(&new_illegal_top) {
+                    illegal.positions.push(new_illegal_top);
+                }
             }
         }
     }
